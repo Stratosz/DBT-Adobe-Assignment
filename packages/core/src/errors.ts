@@ -40,6 +40,7 @@ interface IssueDefinition {
 }
 
 const f = (ctx: HintContext) => (ctx.sourceField ? `"${ctx.sourceField}"` : 'the column');
+const list = (ctx: HintContext) => ctx.samples.map((v) => `"${v}"`).join(', ');
 const s = (ctx: HintContext) => (ctx.samples.length ? ` Examples: ${ctx.samples.map((v) => `"${v}"`).join(', ')}.` : '');
 
 export const ISSUE_CATALOG = {
@@ -100,6 +101,11 @@ export const ISSUE_CATALOG = {
     title: 'Required value is empty',
     hint: (c) => `${f(c)} is empty but "${c.field}" is required for this import type. Fill it in or remove the row from the export.`,
   },
+  SCHEMA_VIOLATION: {
+    kind: 'invalid',
+    title: 'Normalized record failed the final schema check',
+    hint: () => 'This indicates a gap in normalization rather than a partner problem. Report it to the integration team with the run id.',
+  },
   DUPLICATE_SKU: {
     kind: 'resolved',
     title: 'SKU appears more than once in the file; last occurrence wins',
@@ -119,7 +125,7 @@ export const ISSUE_CATALOG = {
   PRICE_LOCALE_AMBIGUOUS: {
     kind: 'resolved',
     title: 'Decimal separator was ambiguous; resolved using the partner locale',
-    hint: (c) => `Values like${s(c).replace(' Examples:', '')} could mean either thousands or decimals. They were read using the partner's configured locale. Confirm the locale on the partner profile.`,
+    hint: (c) => `Values like ${list(c)} could mean either thousands or decimals. They were read using the partner's configured locale. Confirm the locale on the partner profile.`,
   },
   CURRENCY_INVALID: {
     kind: 'invalid',
@@ -164,7 +170,7 @@ export const ISSUE_CATALOG = {
   DATE_AMBIGUOUS: {
     kind: 'resolved',
     title: 'Day/month order was ambiguous; resolved using the partner locale',
-    hint: (c) => `Dates like${s(c).replace(' Examples:', '')} could be day-first or month-first. The partner's locale was used.`,
+    hint: (c) => `Dates like ${list(c)} could be day-first or month-first. The partner's locale was used.`,
   },
   TEXT_TRUNCATED: {
     kind: 'resolved',

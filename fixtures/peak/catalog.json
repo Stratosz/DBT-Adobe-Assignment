@@ -1,0 +1,1061 @@
+{
+  "meta": {
+    "exportedAt": "2026-11-09T22:00:00Z",
+    "page": 1,
+    "warnings": []
+  },
+  "data": {
+    "products": [
+      {
+        "productId": "PK5000",
+        "title": "Camp Stove XL",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+        "pricing": {
+          "amount": 307.38,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 33,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "068646475255"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5000"
+        },
+        "updatedAt": "01/04/2026",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5000.jpg",
+            "alt": "Camp Stove XL"
+          }
+        ]
+      },
+      {
+        "productId": "PK5001",
+        "title": "Map Case Pro",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Shelter"
+        },
+        "pricing": {
+          "amount": 202.63,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 22,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "071692829217"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5001"
+        },
+        "updatedAt": "2026-11-02T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5001.jpg",
+            "alt": "Map Case Pro"
+          }
+        ]
+      },
+      {
+        "productId": "PK5002",
+        "title": "Base Layer Lite",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Cooking"
+        },
+        "pricing": {
+          "amount": 144.3,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 29,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "091379938568"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5002"
+        },
+        "updatedAt": "2026-11-03T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5002.jpg",
+            "alt": "Base Layer Lite"
+          }
+        ]
+      },
+      {
+        "productId": "PK5003",
+        "title": "Insulated Mug Classic",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+        "pricing": {
+          "amount": 134.6,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 108,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "014280770683"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5003"
+        },
+        "updatedAt": "2026-11-04T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5003.jpg",
+            "alt": "Insulated Mug Classic"
+          }
+        ]
+      },
+      {
+        "productId": "PK5004",
+        "title": "Trekking Poles Classic",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Cooking"
+        },
+        "pricing": {
+          "amount": 145.93,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 105,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "052983877544"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5004"
+        },
+        "updatedAt": "05/04/2026",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5004.jpg",
+            "alt": "Trekking Poles Classic"
+          }
+        ]
+      },
+      {
+        "productId": "PK5005",
+        "title": "Dry Bag 20L Classic",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Shelter"
+        },
+        "pricing": {
+          "amount": 88.17,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 33,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "091265581312"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5005"
+        },
+        "updatedAt": "2026-11-06T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5005.jpg",
+            "alt": "Dry Bag 20L Classic"
+          }
+        ]
+      },
+      {
+        "productId": "PK5006",
+        "title": "Trekking Poles XL",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Cooking"
+        },
+        "pricing": {
+          "amount": 159.45,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 147,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "045437374355"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5006"
+        },
+        "updatedAt": "2026-11-07T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5006.jpg",
+            "alt": "Trekking Poles XL"
+          }
+        ]
+      },
+      {
+        "productId": "PK5007",
+        "title": "Trekking Poles Classic",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Cooking"
+        },
+        "pricing": {
+          "amount": 286.54,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 125,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "050172213043"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5007"
+        },
+        "updatedAt": "2026-11-08T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5007.jpg",
+            "alt": "Trekking Poles Classic"
+          }
+        ]
+      },
+      {
+        "productId": "PK5008",
+        "title": "Dry Bag 20L Pro",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Apparel"
+        },
+        "pricing": {
+          "amount": 274.42,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 101,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "037958487966"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5008"
+        },
+        "updatedAt": "09/04/2026",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5008.jpg",
+            "alt": "Dry Bag 20L Pro"
+          }
+        ]
+      },
+      {
+        "productId": "PK5009",
+        "title": "Dry Bag 20L XL",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+        "pricing": {
+          "amount": 105.27,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 103,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "035137349265"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5009"
+        },
+        "updatedAt": "2026-11-02T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5009.jpg",
+            "alt": "Dry Bag 20L XL"
+          }
+        ]
+      },
+      {
+        "productId": "PK5010",
+        "title": "Water Filter Lite",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+        "pricing": {
+          "amount": 73.59,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 112,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "097972512792"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5010"
+        },
+        "updatedAt": "2026-11-03T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5010.jpg",
+            "alt": "Water Filter Lite"
+          }
+        ]
+      },
+      {
+        "productId": "PK5011",
+        "title": "Water Filter XL",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Cooking"
+        },
+        "pricing": {
+          "amount": "TBD",
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 35,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "080825473012"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5011"
+        },
+        "updatedAt": "2026-11-04T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5011.jpg",
+            "alt": "Water Filter XL"
+          }
+        ]
+      },
+      {
+        "productId": "PK5012",
+        "title": "Trail Runner Lite",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+        "pricing": {
+          "amount": 300.21,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 106,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "095170861896"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5012"
+        },
+        "updatedAt": "04/04/2026",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5012.jpg",
+            "alt": "Trail Runner Lite"
+          }
+        ]
+      },
+      {
+        "productId": "PK5013",
+        "title": "Water Filter XL",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+        "pricing": {
+          "amount": 142.85,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 57,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "039228170820"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5013"
+        },
+        "updatedAt": "2026-11-06T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5013.jpg",
+            "alt": "Water Filter XL"
+          }
+        ]
+      },
+      {
+        "productId": "PK5014",
+        "title": "Water Filter Pro",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+        "pricing": {
+          "amount": 225.04,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 3,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "075747172419"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5014"
+        },
+        "updatedAt": "2026-11-07T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5014.jpg",
+            "alt": "Water Filter Pro"
+          }
+        ]
+      },
+      {
+        "productId": "PK5015",
+        "title": "Rain Shell Classic",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Apparel"
+        },
+        "pricing": {
+          "amount": 53.29,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 46,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "078676272946"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5015"
+        },
+        "updatedAt": "2026-11-08T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5015.jpg",
+            "alt": "Rain Shell Classic"
+          }
+        ]
+      },
+      {
+        "productId": "PK5016",
+        "title": "Rain Shell Pro",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+        "pricing": {
+          "amount": 270.55,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 190,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "034099937329"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5016"
+        },
+        "updatedAt": "08/04/2026",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5016.jpg",
+            "alt": "Rain Shell Pro"
+          }
+        ]
+      },
+      {
+        "productId": "PK5017",
+        "title": "Camp Stove Lite",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+        "pricing": {
+          "amount": 42.68,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 131,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "015563515861"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5017"
+        },
+        "updatedAt": "2026-11-02T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5017.jpg",
+            "alt": "Camp Stove Lite"
+          }
+        ]
+      },
+      {
+        "productId": "PK5018",
+        "title": "Rain Shell Classic",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Shelter"
+        },
+        "pricing": {
+          "amount": 25.33,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 141,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "039219241904"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5018"
+        },
+        "updatedAt": "2026-11-03T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5018.jpg",
+            "alt": "Rain Shell Classic"
+          }
+        ]
+      },
+      {
+        "productId": "PK5019",
+        "title": "Trail Runner Pro",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Apparel"
+        },
+        "pricing": {
+          "amount": 119.05,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 122,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "009285121097"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5019"
+        },
+        "updatedAt": "2026-11-04T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5019.jpg",
+            "alt": "Trail Runner Pro"
+          }
+        ]
+      },
+      {
+        "productId": "PK5020",
+        "title": "Rain Shell Classic",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Shelter"
+        },
+        "pricing": {
+          "amount": 156.4,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 128,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "018720769008"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5020"
+        },
+        "updatedAt": "03/04/2026",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5020.jpg",
+            "alt": "Rain Shell Classic"
+          }
+        ]
+      },
+      {
+        "productId": "PK5021",
+        "title": "Base Layer Lite",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Apparel"
+        },
+        "pricing": {
+          "amount": 231.6,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 50,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "013275257147"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5021"
+        },
+        "updatedAt": "2026-11-06T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5021.jpg",
+            "alt": "Base Layer Lite"
+          }
+        ]
+      },
+      {
+        "productId": "PK5022",
+        "title": "Base Layer Pro",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+        "pricing": {
+          "amount": 302.35,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 186,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "088554445140"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5022"
+        },
+        "updatedAt": "2026-11-07T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5022.jpg",
+            "alt": "Base Layer Pro"
+          }
+        ]
+      },
+      {
+        "productId": "PK5023",
+        "title": "Camp Stove Lite",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+        "pricing": {
+          "amount": 230.52,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 192,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "051187047340"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5023"
+        },
+        "updatedAt": "2026-11-08T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5023.jpg",
+            "alt": "Camp Stove Lite"
+          }
+        ]
+      },
+      {
+        "productId": "PK5024",
+        "title": "Bivy Sack XL",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Cooking"
+        },
+        "pricing": {
+          "amount": 104.96,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 192,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "020142549892"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5024"
+        },
+        "updatedAt": "07/04/2026",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5024.jpg",
+            "alt": "Bivy Sack XL"
+          }
+        ]
+      },
+      {
+        "productId": "PK5025",
+        "title": "Trail Runner XL",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Shelter"
+        },
+        "pricing": {
+          "amount": 272.49,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 71,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "034598261093"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5025"
+        },
+        "updatedAt": "2026-11-02T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5025.jpg",
+            "alt": "Trail Runner XL"
+          }
+        ]
+      },
+      {
+        "productId": "PK5026",
+        "title": "Bivy Sack XL",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Cooking"
+        },
+        "pricing": {
+          "amount": 112.29,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 115,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "044731770986"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5026"
+        },
+        "updatedAt": "2026-11-03T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5026.jpg",
+            "alt": "Bivy Sack XL"
+          }
+        ]
+      },
+      {
+        "productId": "PK5027",
+        "title": "Insulated Mug Lite",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Shelter"
+        },
+        "pricing": {
+          "amount": 92.02,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 122,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "014543354599"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5027"
+        },
+        "updatedAt": "2026-11-04T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5027.jpg",
+            "alt": "Insulated Mug Lite"
+          }
+        ]
+      },
+      {
+        "productId": "PK5028",
+        "title": "Bivy Sack Lite",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Shelter"
+        },
+        "pricing": {
+          "amount": 260.95,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 1,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "016265462606"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5028"
+        },
+        "updatedAt": "02/04/2026",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5028.jpg",
+            "alt": "Bivy Sack Lite"
+          }
+        ]
+      },
+      {
+        "productId": "PK5029",
+        "title": "Rain Shell Lite",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+        "pricing": {
+          "amount": 134.04,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 186,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "006428598051"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5029"
+        },
+        "updatedAt": "2026-11-06T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5029.jpg",
+            "alt": "Rain Shell Lite"
+          }
+        ]
+      }
+    ]
+  }
+}

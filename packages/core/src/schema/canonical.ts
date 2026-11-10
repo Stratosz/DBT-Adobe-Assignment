@@ -75,7 +75,7 @@ export const CANONICAL_FIELDS: Record<CanonicalFieldName, CanonicalField> = {
     name: 'availability',
     type: 'availability',
     description: 'in_stock | out_of_stock | preorder | discontinued',
-    aliases: ['availability', 'in_stock', 'stock_status', 'avail', 'availability_status', 'verfuegbarkeit'],
+    aliases: ['availability', 'in_stock', 'stock_status', 'avail', 'availability_status', 'verfuegbarkeit', 'lieferstatus'],
   },
   gtin: {
     name: 'gtin',
@@ -105,7 +105,7 @@ export const CANONICAL_FIELDS: Record<CanonicalFieldName, CanonicalField> = {
     name: 'updated_at',
     type: 'datetime',
     description: 'Last modification time at the source (ISO 8601, UTC)',
-    aliases: ['updated_at', 'last_modified', 'modified', 'updated', 'last_updated', 'modified_at', 'timestamp', 'changed_at'],
+    aliases: ['updated_at', 'last_modified', 'modified', 'updated', 'last_updated', 'modified_at', 'timestamp', 'changed_at', 'geaendert_am', 'aktualisiert', 'letzte_aenderung'],
   },
 };
 

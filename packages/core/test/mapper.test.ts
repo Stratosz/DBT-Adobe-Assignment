@@ -17,7 +17,8 @@ describe('normalizeFieldName', () => {
     ['Artikel-Nr.', 'artikel_nr'],
     ['ProductName', 'product_name'],
     [' Unit Price (EUR) ', 'unit_price_eur'],
-    ['Größe', 'grosse'],
+    ['Größe', 'groesse'],
+    ['Währung', 'waehrung'],
   ])('%j -> %s', (input, expected) => expect(normalizeFieldName(input)).toBe(expected));
 });
 

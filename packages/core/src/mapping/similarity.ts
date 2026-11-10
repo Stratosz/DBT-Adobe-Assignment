@@ -3,6 +3,9 @@
 /** "Artikel-Nr.", "ProductName", "  unit price (EUR) " -> "artikel_nr", "product_name", "unit_price_eur" */
 export function normalizeFieldName(name: string): string {
   return name
+    // German transliteration first, so "Währung" matches the alias "waehrung"
+    .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue')
+    .replace(/Ä/g, 'Ae').replace(/Ö/g, 'Oe').replace(/Ü/g, 'Ue')
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')
     .replace(/ß/g, 'ss')

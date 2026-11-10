@@ -1,0 +1,16 @@
+[
+  {
+    "id": "nordwind",
+    "name": "Nordwind Outdoor GmbH",
+    "description": "German supplier. Weekly catalog CSV exported from their ERP (Excel on Windows).",
+    "locale": { "decimalSeparator": ",", "dateOrder": "DMY", "defaultCurrency": "EUR" },
+    "readOptions": {}
+  },
+  {
+    "id": "peak",
+    "name": "Peak Supply Co",
+    "description": "US supplier. Nightly JSON catalog from their API, hourly NDJSON stock feed.",
+    "locale": { "decimalSeparator": ".", "dateOrder": "MDY", "defaultCurrency": "USD" },
+    "readOptions": {}
+  }
+]
