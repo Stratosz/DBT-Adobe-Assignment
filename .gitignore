@@ -1,0 +1,8 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+# runtime data (SQLite db, stored raw uploads, generated large feeds)
+data/
+fixtures/generated/

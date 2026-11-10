@@ -1,0 +1,30 @@
+{
+  "name": "feed-ingest",
+  "private": true,
+  "description": "Ingestion and normalization for messy partner product feeds (CSV, JSON, NDJSON) with schema-drift handling and actionable errors.",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "dev": "concurrently -k -n api,web -c blue,magenta \"npm:dev -w apps/api\" \"npm:dev -w apps/web\"",
+    "start": "npm run build -w apps/web && npm run start -w apps/api",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p packages/core && tsc -p apps/api && tsc -p apps/web",
+    "ingest": "tsx scripts/ingest-cli.ts",
+    "gen:large": "tsx scripts/generate-large-feed.ts",
+    "bench": "tsx scripts/bench.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "concurrently": "^9.1.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "vitest": "^3.2.0"
+  }
+}
