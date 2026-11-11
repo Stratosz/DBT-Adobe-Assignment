@@ -31,8 +31,8 @@ Sign in with one of the demo users. The UI has buttons for them in dev and demo 
 | User   | Role     | API key             | Can                                                                        |
 | ------ | -------- | ------------------- | -------------------------------------------------------------------------- |
 | Andrei | uploader | `demo-uploader-key` | upload files, view runs, download set-aside rows                           |
-| Mara   | reviewer | `demo-reviewer-key` | + confirm mappings, approve or reject held files, change the bad-row limit |
-| Tobias | admin    | `demo-admin-key`    | + change saved supplier mappings, read `/metrics`                          |
+| Bogdan | reviewer | `demo-reviewer-key` | + confirm mappings, approve or reject held files, change the bad-row limit |
+| Marius | admin    | `demo-admin-key`    | + change saved supplier mappings, read `/metrics`                          |
 
 These keys are public (they are in this README) and stored hashed in `config/api-keys.demo.json`. In production mode the server refuses to start with them unless `ALLOW_DEMO_KEYS=true`. See [SECURITY.md](SECURITY.md).
 
@@ -108,17 +108,17 @@ Run it in the UI, switching users with **Switch user**. The expected results ass
 | --- | ------ | ------------------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 1   | Andrei | `fixtures/nordwind/week1_catalog.csv` | **Imported**, 30 new                  | Upload returns at once and the run updates by itself. A `;`-separated, decimal-comma, Windows-1252 file is matched entirely through known aliases. |
 | 2   | Andrei | `fixtures/nordwind/week2_catalog.csv` | **Needs mapping**                     | An ERP upgrade renamed columns and added `Farbe`. The drift is shown. Andrei can't confirm; the page says a reviewer must.                         |
-| 3   | Mara   | Confirm the mapping                   | **Imported**, 29 updated, 1 set aside | Line 9 has the price "auf Anfrage". The decision is saved for Nordwind and shown in the run history.                                               |
+| 3   | Bogdan | Confirm the mapping                   | **Imported**, 29 updated, 1 set aside | Line 9 has the price "auf Anfrage". The decision is saved for Nordwind and shown in the run history.                                               |
 | 4   | Andrei | `fixtures/nordwind/week3_catalog.csv` | **Held for review**                   | No questions this time (saved mapping), but the export lost most prices: 65% bad against a 5% limit, so nothing is applied.                        |
-| 5   | Mara   | Approve with a reason, or reject      | **Imported** / **Rejected**           | The reason is recorded. If Mara had uploaded it herself, she couldn't approve it (four-eyes rule).                                                 |
+| 5   | Bogdan | Approve with a reason, or reject      | **Imported** / **Rejected**           | The reason is recorded. If Bogdan had uploaded it himself, he couldn't approve it (four-eyes rule).                                                |
 
 **The MVP story: Peak (JSON API)**
 
-| #   | As                | Upload / action                                                                              | Expected                 | What it shows                                                                                                                                                                                                     |
-| --- | ----------------- | -------------------------------------------------------------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 6   | Andrei, then Mara | `fixtures/peak/catalog.json` (supplier Peak), then confirm `inventory.status` → availability | **Imported**, 29 new     | Nested JSON. `pricing.amount`, `inventory.onHand` and `identifiers.upc` are matched automatically. US dates are read month-first and flagged. A bad UPC drops only that field. A "TBD" price sets that row aside. |
-| 7   | Andrei            | `fixtures/peak/inventory.ndjson` (type: inventory update)                                    | **Imported**, 22 updated | One corrupt line and one negative stock value are set aside. Inventory updates never create products.                                                                                                             |
-| 8   | Andrei            | `fixtures/peak/catalog_broken.json`                                                          | **Failed**               | A truncated export fails the whole file with "ask the supplier to resend".                                                                                                                                        |
+| #   | As                  | Upload / action                                                                              | Expected                 | What it shows                                                                                                                                                                                                     |
+| --- | ------------------- | -------------------------------------------------------------------------------------------- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 6   | Andrei, then Bogdan | `fixtures/peak/catalog.json` (supplier Peak), then confirm `inventory.status` → availability | **Imported**, 29 new     | Nested JSON. `pricing.amount`, `inventory.onHand` and `identifiers.upc` are matched automatically. US dates are read month-first and flagged. A bad UPC drops only that field. A "TBD" price sets that row aside. |
+| 7   | Andrei              | `fixtures/peak/inventory.ndjson` (type: inventory update)                                    | **Imported**, 22 updated | One corrupt line and one negative stock value are set aside. Inventory updates never create products.                                                                                                             |
+| 8   | Andrei              | `fixtures/peak/catalog_broken.json`                                                          | **Failed**               | A truncated export fails the whole file with "ask the supplier to resend".                                                                                                                                        |
 
 **Feedback round 1**
 
@@ -126,9 +126,9 @@ Run it in the UI, switching users with **Switch user**. The expected results ass
 | --- | ------ | -------------------------------------------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | 9   | Andrei | `fixtures/peak/inventory_late.ndjson` (inventory update) | **Imported**, 22 rows skipped as older than the catalog   | #2: a late stock file doesn't overwrite newer stock                                |
 | 10  | Andrei | `fixtures/peak/prices_bug.csv` (price update)            | **Held for review**: "11 prices changed by more than 50%" | #3: every value is valid, but prices are 90% too low                               |
-| 11  | Mara   | Reject it with a reason                                  | **Rejected**                                              | #3, and the history shows who decided                                              |
+| 11  | Bogdan | Reject it with a reason                                  | **Rejected**                                              | #3, and the history shows who decided                                              |
 | 12  | Andrei | `fixtures/peak/prices_small_fix.csv` (price update)      | **Imported**, 1 set aside                                 | #4: 1 bad row in 3 is above 2%, but below the minimum count, so the run isn't held |
-| 13  | Tobias | Suppliers tab → Nordwind → change or remove a mapping    | Saved and audited                                         | #6: a wrong mapping can be fixed                                                   |
+| 13  | Marius | Suppliers tab → Nordwind → change or remove a mapping    | Saved and audited                                         | #6: a wrong mapping can be fixed                                                   |
 | 14  | Andrei | Upload week 1 again                                      | **409 Duplicate file**                                    | Idempotency by content hash; the UI offers "Import it again anyway"                |
 
 The same flow with curl:

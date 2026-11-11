@@ -141,8 +141,8 @@ export function App() {
 
 const DEMO_KEYS = [
   { key: 'demo-uploader-key', who: 'Andrei', role: 'uploader', does: 'uploads files' },
-  { key: 'demo-reviewer-key', who: 'Mara', role: 'reviewer', does: 'confirms mappings, approves held files' },
-  { key: 'demo-admin-key', who: 'Tobias', role: 'admin', does: 'manages supplier mappings, sees metrics' },
+  { key: 'demo-reviewer-key', who: 'Bogdan', role: 'reviewer', does: 'confirms mappings, approves held files' },
+  { key: 'demo-admin-key', who: 'Marius', role: 'admin', does: 'manages supplier mappings, sees metrics' },
 ];
 const SHOW_DEMO_KEYS = import.meta.env.DEV || import.meta.env.VITE_DEMO_KEYS === 'true';
 

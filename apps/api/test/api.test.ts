@@ -36,8 +36,8 @@ describe('ingestion API: the Nordwind story end to end', () => {
     const mappings = (await h.req('uploader', 'GET', '/api/partners/nordwind/mappings')).body;
     expect(mappings.map((m: { sourceField: string; target: string | null; decidedBy: string }) => [m.sourceField, m.target, m.decidedBy])).toEqual(
       expect.arrayContaining([
-        ['VK-Preis', 'price', 'mara'],
-        ['Farbe', null, 'mara'],
+        ['VK-Preis', 'price', 'bogdan'],
+        ['Farbe', null, 'bogdan'],
       ]),
     );
 
@@ -55,7 +55,7 @@ describe('ingestion API: the Nordwind story end to end', () => {
     expect(approved.body).toMatchObject({ status: 'COMMITTED', commit: { updated: 11 } });
     expect(approved.body.audit.map((a: { action: string; actorId: string }) => `${a.action}:${a.actorId}`)).toEqual([
       'run.uploaded:andrei',
-      'run.approved:mara',
+      'run.approved:bogdan',
     ]);
   });
 
@@ -126,7 +126,7 @@ describe('feedback round 1 through the API', () => {
 
     expect((await h.req('reviewer', 'PUT', '/api/partners/nordwind/mappings/Farbe', { target: null })).status).toBe(403);
     const fixed = await h.req('admin', 'PUT', '/api/partners/nordwind/mappings/Farbe', { target: null });
-    expect(fixed.body.find((m: { sourceField: string }) => m.sourceField === 'Farbe')).toMatchObject({ target: null, decidedBy: 'tobias' });
+    expect(fixed.body.find((m: { sourceField: string }) => m.sourceField === 'Farbe')).toMatchObject({ target: null, decidedBy: 'marius' });
     const removed = await h.req('admin', 'DELETE', `/api/partners/nordwind/mappings/${encodeURIComponent('VK-Preis')}`);
     expect(removed.body.map((m: { sourceField: string }) => m.sourceField)).not.toContain('VK-Preis');
 

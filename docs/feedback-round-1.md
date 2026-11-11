@@ -9,21 +9,21 @@ The MVP went to pilot at the customer, Summit & Trail (a fictional mid-size outd
 
 At the end of week two we held a review with three groups:
 
-- **Mara**, catalog operations lead: daily user of the console.
-- **Tobias**, InfoSec: the go-live sign-off.
+- **Bogdan**, catalog operations lead: daily user of the console.
+- **Marius**, InfoSec: the go-live sign-off.
 - **Ilinca**, pricing and finance.
 
-They brought seven requests. This document records what they asked for, what we understood the underlying need to be, what we decided, and how we verified the change. "We" is me as the forward-deployed engineer, with Mara as product owner on the customer side.
+They brought seven requests. This document records what they asked for, what we understood the underlying need to be, what we decided, and how we verified the change. "We" is me as the forward-deployed engineer, with Bogdan as product owner on the customer side.
 
 | #   | Request (their words)                                                           | From   | Decision                                                       |
 | --- | ------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------- |
-| 1   | "Before this goes live it needs a security review."                             | Tobias | **Accepted.** Security hardening (below)                       |
-| 2   | "Peak's stock numbers went _backwards_ on Tuesday."                             | Mara   | **Accepted.** Stale-record guard                               |
+| 1   | "Before this goes live it needs a security review."                             | Marius | **Accepted.** Security hardening (below)                       |
+| 2   | "Peak's stock numbers went _backwards_ on Tuesday."                             | Bogdan | **Accepted.** Stale-record guard                               |
 | 3   | "A supplier sent prices 90% too low and it went live."                          | Ilinca | **Accepted, modified.** Price-swing review instead of blocking |
-| 4   | "A 3-row price fix was held because of one typo."                               | Mara   | **Accepted.** Minimum-count rule                               |
-| 5   | "Peak's full catalog is 200 MB now. Uploads time out, and everyone else waits." | Mara   | **Accepted.** Async processing                                 |
-| 6   | "We confirmed a wrong column mapping and can't undo it."                        | Mara   | **Accepted.** Manage saved mappings                            |
-| 7   | "Can it just map everything automatically? Confirming is annoying."             | Mara   | **Pushed back.** Counter-proposal below                        |
+| 4   | "A 3-row price fix was held because of one typo."                               | Bogdan | **Accepted.** Minimum-count rule                               |
+| 5   | "Peak's full catalog is 200 MB now. Uploads time out, and everyone else waits." | Bogdan | **Accepted.** Async processing                                 |
+| 6   | "We confirmed a wrong column mapping and can't undo it."                        | Bogdan | **Accepted.** Manage saved mappings                            |
+| 7   | "Can it just map everything automatically? Confirming is annoying."             | Bogdan | **Pushed back.** Counter-proposal below                        |
 
 Also raised in the session and **deferred to round 2**, with a reason for each:
 
@@ -36,7 +36,7 @@ Also raised in the session and **deferred to round 2**, with a reason for each:
 
 ## 1. Security review (InfoSec)
 
-Tobias reviewed the MVP against the company's checklist for internal tools that handle supplier data. Findings and responses:
+Marius reviewed the MVP against the company's checklist for internal tools that handle supplier data. Findings and responses:
 
 | Finding                                                                                                            | Risk                                                  | Change                                                                                                                                                                                                                                                                                                                              |
 | ------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -118,7 +118,7 @@ The decision message explains which rule applied.
 
 ## 7. "Just map everything automatically" (pushed back)
 
-**What Mara asked:** remove the confirmation step entirely.
+**What Bogdan asked:** remove the confirmation step entirely.
 
 **What we heard:** confirming is tedious when the answer is obvious. For example, `VK-Preis` is plainly a price for a German supplier.
 
@@ -130,7 +130,7 @@ The decision message explains which rule applied.
 - Mapping changes are now editable (#6), so a wrong click is cheap to fix.
 - For round 2: a supplier onboarding step where ops pre-approve the supplier's known column names up front, and a "confirm all suggestions" button for files where every suggestion has value evidence.
 
-Mara agreed. The rule "never automatically map a required field from a guess" stays.
+Bogdan agreed. The rule "never automatically map a required field from a guess" stays.
 
 ---
 
