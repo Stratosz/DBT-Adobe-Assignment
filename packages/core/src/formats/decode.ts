@@ -45,18 +45,40 @@ export function decodeHead(bytes: Uint8Array, max = 16 * 1024): string {
 }
 
 /** Split a text stream into lines (handles \n and \r\n), tracking 1-based line numbers. */
-export async function* lines(text: AsyncIterable<string>): AsyncIterable<{ line: string; lineNo: number }> {
+export async function* lines(
+  text: AsyncIterable<string>,
+  maxLineLength = 1_000_000,
+): AsyncIterable<{ line: string; lineNo: number; tooLong?: boolean }> {
   let buffer = '';
+  let scanFrom = 0; // only scan new text for newlines (keeps this linear)
   let lineNo = 0;
+  let dropping = false; // inside an over-long line: discard until the next newline
   for await (const chunk of text) {
     buffer += chunk;
     let idx: number;
-    while ((idx = buffer.indexOf('\n')) >= 0) {
+    while ((idx = buffer.indexOf('\n', scanFrom)) >= 0) {
       const raw = buffer.slice(0, idx);
       buffer = buffer.slice(idx + 1);
+      scanFrom = 0;
       lineNo++;
+      if (dropping) {
+        dropping = false;
+        yield { line: '', lineNo, tooLong: true };
+        continue;
+      }
       yield { line: raw.endsWith('\r') ? raw.slice(0, -1) : raw, lineNo };
     }
+    scanFrom = buffer.length;
+    if (buffer.length > maxLineLength) {
+      dropping = true;
+      buffer = '';
+      scanFrom = 0;
+    }
+  }
+  if (dropping) {
+    lineNo++;
+    yield { line: '', lineNo, tooLong: true };
+    return;
   }
   if (buffer.length) {
     lineNo++;

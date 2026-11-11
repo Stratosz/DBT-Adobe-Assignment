@@ -12,10 +12,12 @@ import type { CanonicalFieldName } from './schema/canonical.ts';
  *  - invalid:  a value is wrong. If the field is required by the import type the record is
  *              quarantined; otherwise the field is dropped (null) and the record loads with a warning.
  *  - resolved: we had to make a judgement call (e.g. ambiguous date) and did; always a warning.
+ *  - review:   the value is valid but suspicious against the live catalog (e.g. a 90% price drop);
+ *              the record is kept but the run is held until a person approves it.
  *  - info:     worth knowing, nothing to fix (e.g. extra unmapped columns).
  */
 export type Severity = 'error' | 'warning' | 'info';
-export type IssueKind = 'fatal' | 'invalid' | 'resolved' | 'info';
+export type IssueKind = 'fatal' | 'invalid' | 'resolved' | 'review' | 'info';
 
 export interface RecordLocation {
   /** 0-based record index in the file (after the header for CSV). */
@@ -100,6 +102,21 @@ export const ISSUE_CATALOG = {
     kind: 'invalid',
     title: 'Required value is empty',
     hint: (c) => `${f(c)} is empty but "${c.field}" is required for this import type. Fill it in or remove the row from the export.`,
+  },
+  RECORD_TOO_LARGE: {
+    kind: 'invalid',
+    title: 'Record exceeds the size limits',
+    hint: () => 'The record has too many fields or a value that is far too long (limits: 500 fields, 10,000 characters per value). This is usually a broken export or a wrong delimiter.',
+  },
+  STALE_RECORD: {
+    kind: 'resolved',
+    title: 'Record is older than the product in the catalog; skipped',
+    hint: () => 'The catalog already has newer data for these SKUs (by the supplier timestamp), so this older data was not applied. Expected when feeds arrive out of order; nothing to fix unless the supplier clock is wrong.',
+  },
+  PRICE_SWING: {
+    kind: 'review',
+    title: 'Price changed more than the allowed swing against the catalog',
+    hint: (c) => `These prices moved more than the allowed percentage compared with the current catalog.${s(c)} If it is a sale or a repricing, approve the run; if it looks like a unit or currency bug, reject it and ask the supplier for a corrected file.`,
   },
   SCHEMA_VIOLATION: {
     kind: 'invalid',
@@ -206,6 +223,7 @@ export function severityFor(code: IssueCode, fieldIsRequired: boolean): Severity
     case 'invalid':
       return fieldIsRequired ? 'error' : 'warning';
     case 'resolved':
+    case 'review':
       return 'warning';
     case 'info':
       return 'info';

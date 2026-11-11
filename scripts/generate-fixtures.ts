@@ -128,4 +128,24 @@ const peak = Array.from({ length: 30 }, (_, i) => ({
   writeFileSync(join(root, 'peak', 'inventory.ndjson'), `${lines.join('\n')}\n`);
 }
 
+// ---- Feedback round 1 fixtures ----------------------------------------------------------------
+// #2 An older stock file that arrives after the newer one (SFTP retry): every record is older than
+//    the catalog once inventory.ndjson (06:00) has been applied, so all are skipped as stale.
+{
+  const lines = peak.slice(0, 25).map((p) => JSON.stringify({ productId: p.sku, onHand: p.qty + 50, updatedAt: '2026-11-10T05:00:00Z' }));
+  writeFileSync(join(root, 'peak', 'inventory_late.ndjson'), `${lines.join('\n')}\n`);
+}
+// #3 A price update where the supplier's export divided every price by 10 (all values valid).
+{
+  const header = 'productId,unitPrice,currency,updatedAt';
+  const rows = peak.slice(0, 12).map((p) => `${p.sku},${(p.price / 10).toFixed(2)},USD,2026-11-11T07:00:00Z`);
+  writeFileSync(join(root, 'peak', 'prices_bug.csv'), `${header}\n${rows.join('\n')}\n`);
+}
+// #4 A tiny price fix with one typo ("1O.99" with a letter O): 1 of 3 rows bad.
+{
+  const header = 'productId,unitPrice,currency,updatedAt';
+  const rows = peak.slice(20, 23).map((p, i) => `${p.sku},${i === 1 ? '1O.99' : (p.price * 1.05).toFixed(2)},USD,2026-11-11T08:00:00Z`);
+  writeFileSync(join(root, 'peak', 'prices_small_fix.csv'), `${header}\n${rows.join('\n')}\n`);
+}
+
 console.log('fixtures written to', root);

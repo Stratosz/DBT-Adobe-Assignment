@@ -189,7 +189,7 @@ export function proposeMapping(
   const ignored = new Set<string>();
 
   for (const { profile } of scored) {
-    if (!(profile.name in saved)) continue;
+    if (!Object.hasOwn(saved, profile.name)) continue;
     const target = saved[profile.name];
     if (target === null || target === undefined) {
       ignored.add(profile.name);
@@ -248,7 +248,7 @@ export function proposeMapping(
     return { sourceField: profile.name, target: chosen.target, confidence: Number(chosen.confidence.toFixed(3)), method: chosen.method, status, reason, alternatives, samples };
   });
 
-  const mapping: Record<string, CanonicalFieldName> = {};
+  const mapping = Object.create(null) as Record<string, CanonicalFieldName>;
   for (const m of matches) if (m.target && m.status === 'auto') mapping[m.sourceField] = m.target;
   const mappedTargets = new Set(matches.filter((m) => m.target).map((m) => m.target));
   const missingRequired = importType.requiredFields.filter((f) => !mappedTargets.has(f));
@@ -272,9 +272,9 @@ export function applyDecisions(
   decisions: SavedMapping,
   importType: ImportTypeConfig,
 ): { mapping: Record<string, CanonicalFieldName>; problems: string[] } {
-  const mapping: Record<string, CanonicalFieldName> = {};
+  const mapping = Object.create(null) as Record<string, CanonicalFieldName>;
   for (const m of proposal.matches) {
-    const decided = m.sourceField in decisions ? decisions[m.sourceField] : undefined;
+    const decided = Object.hasOwn(decisions, m.sourceField) ? decisions[m.sourceField] : undefined;
     if (decided === null) continue;
     const target = decided ?? (m.status === 'auto' ? m.target : null);
     if (target) mapping[m.sourceField] = target;
@@ -289,7 +289,7 @@ export function applyDecisions(
   }
   for (const f of importType.requiredFields) if (!seen.has(f)) problems.push(`Required field "${f}" is not mapped`);
   for (const m of proposal.matches) {
-    if (m.status === 'needs_confirmation' && !(m.sourceField in decisions)) problems.push(`"${m.sourceField}" still needs a decision`);
+    if (m.status === 'needs_confirmation' && !Object.hasOwn(decisions, m.sourceField)) problems.push(`"${m.sourceField}" still needs a decision`);
   }
   return { mapping, problems };
 }

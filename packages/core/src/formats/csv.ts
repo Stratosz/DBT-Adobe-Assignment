@@ -2,6 +2,7 @@ import { Readable } from 'node:stream';
 import { parse } from 'csv-parse';
 import type { CsvError } from 'csv-parse';
 import { displayValue } from '../errors.ts';
+import { emptyRecord } from './flatten.ts';
 import { FormatError, type AdapterEvent, type FormatAdapter, type ReadOptions } from './types.ts';
 
 const CANDIDATE_DELIMITERS = [',', ';', '\t', '|'] as const;
@@ -86,6 +87,8 @@ export const csvAdapter: FormatAdapter = {
         skip_empty_lines: true,
         skip_records_with_error: true,
         info: true,
+        // A single record over 1 MB means a broken file (e.g. an unclosed quote); fail it, don't buffer forever.
+        max_record_size: 1_000_000,
       }),
     );
 
@@ -115,7 +118,7 @@ export const csvAdapter: FormatAdapter = {
         }
         // Excel loves trailing ",,,," rows; they carry no data.
         if (record.every((v) => v.trim() === '')) continue;
-        const fields: Record<string, unknown> = {};
+        const fields = emptyRecord();
         header.forEach((h, i) => (fields[h] = record[i] ?? ''));
         yield { type: 'record', record: { fields, raw: fields, location: { index, line: info.lines } } };
         index++;

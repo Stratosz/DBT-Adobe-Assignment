@@ -5,9 +5,9 @@ export async function* chunked(text: string, size = 7): AsyncIterable<string> {
   for (let i = 0; i < text.length; i += size) yield text.slice(i, i + size);
 }
 
-export async function collect(adapter: FormatAdapter, text: string, options?: ReadOptions): Promise<AdapterEvent[]> {
+export async function collect(adapter: FormatAdapter, text: string, options?: ReadOptions, chunkSize = 7): Promise<AdapterEvent[]> {
   const out: AdapterEvent[] = [];
-  for await (const e of adapter.read(chunked(text), options)) out.push(e);
+  for await (const e of adapter.read(chunked(text, chunkSize), options)) out.push(e);
   return out;
 }
 

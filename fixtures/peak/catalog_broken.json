@@ -1,0 +1,123 @@
+{
+  "meta": {
+    "exportedAt": "2026-11-09T22:00:00Z",
+    "page": 1,
+    "warnings": []
+  },
+  "data": {
+    "products": [
+      {
+        "productId": "PK5000",
+        "title": "Camp Stove XL",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+        "pricing": {
+          "amount": 307.38,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 33,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "068646475255"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5000"
+        },
+        "updatedAt": "01/04/2026",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5000.jpg",
+            "alt": "Camp Stove XL"
+          }
+        ]
+      },
+      {
+        "productId": "PK5001",
+        "title": "Map Case Pro",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Shelter"
+        },
+        "pricing": {
+          "amount": 202.63,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 22,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "071692829217"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5001"
+        },
+        "updatedAt": "2026-11-02T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "sale"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5001.jpg",
+            "alt": "Map Case Pro"
+          }
+        ]
+      },
+      {
+        "productId": "PK5002",
+        "title": "Base Layer Lite",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Camping > Cooking"
+        },
+        "pricing": {
+          "amount": 144.3,
+          "currency": "USD"
+        },
+        "inventory": {
+          "onHand": 29,
+          "status": "https://schema.org/InStock"
+        },
+        "identifiers": {
+          "upc": "091379938568"
+        },
+        "links": {
+          "product": "https://peak-supply.example/p/pk5002"
+        },
+        "updatedAt": "2026-11-03T08:00:00Z",
+        "tags": [
+          "outdoor",
+          "new"
+        ],
+        "images": [
+          {
+            "url": "https://img.peak-supply.example/PK5002.jpg",
+            "alt": "Base Layer Lite"
+          }
+        ]
+      },
+      {
+        "productId": "PK5003",
+        "title": "Insulated Mug Classic",
+        "brand": {
+          "name": "Peak Supply Co"
+        },
+        "category": {
+          "path": "Hiking > Footwear"
+        },
+     

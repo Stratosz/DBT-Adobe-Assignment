@@ -5,8 +5,18 @@ import type { QuarantinedRecord } from './run.ts';
  * Quarantine exports a partner can act on: the original record, untouched, plus why it was
  * rejected. They fix those rows and send them again; nothing else needs to be re-sent.
  */
-function csvCell(v: unknown): string {
-  const s = v === null || v === undefined ? '' : typeof v === 'string' ? v : typeof v === 'object' ? JSON.stringify(v) : String(v);
+/**
+ * CSV/formula injection (OWASP): a supplier-controlled cell starting with = + - @ (or tab/CR)
+ * is executed as a formula when ops open the file in Excel. Prefix such cells with an apostrophe
+ * so spreadsheet tools treat them as text. Applied to every cell, including our own columns.
+ */
+export function neutralizeFormula(s: string): string {
+  return /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+}
+
+export function csvCell(v: unknown): string {
+  const raw = v === null || v === undefined ? '' : typeof v === 'string' ? v : typeof v === 'object' ? JSON.stringify(v) : String(v);
+  const s = neutralizeFormula(raw);
   return /[",\n\r;]/.test(s) ? `"${s.replaceAll('"', '""')}"` : s;
 }
 

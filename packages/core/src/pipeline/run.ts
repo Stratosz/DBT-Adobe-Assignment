@@ -2,6 +2,7 @@ import { CANONICAL_FIELDS, NormalizedProductSchema, emptyProduct, type Canonical
 import { resolvePolicy, type ResolvedPolicy } from '../schema/importTypes.ts';
 import { ISSUE_CATALOG, displayValue, severityFor, type Issue, type IssueCode, type RecordLocation } from '../errors.ts';
 import { decodeChunks, decodeHead, type DecodeResult } from '../formats/decode.ts';
+import { MAX_FIELDS_PER_RECORD, MAX_VALUE_LENGTH } from '../formats/flatten.ts';
 import { detectFormat, getAdapter } from '../formats/registry.ts';
 import { FormatError, type ReadOptions } from '../formats/types.ts';
 import { proposeMapping, type FieldProfile, type MappingProposal, type SavedMapping } from '../mapping/mapper.ts';
@@ -17,6 +18,25 @@ export function bufferSource(buf: Uint8Array, chunkSize = 64 * 1024): ByteSource
   };
 }
 
+/** What the live catalog currently holds for a SKU (supplied by the caller; core stays I/O-free). */
+export interface CatalogEntry {
+  price: number | null;
+  currency: string | null;
+  updated_at: string | null;
+}
+export type CatalogLookup = (sku: string) => CatalogEntry | null;
+
+/** Field count / value length limits; oversized records are quarantined, not processed. */
+export function recordTooLarge(fields: Record<string, unknown>): string | null {
+  const keys = Object.keys(fields);
+  if (keys.length > MAX_FIELDS_PER_RECORD) return `Record has more than ${MAX_FIELDS_PER_RECORD} fields`;
+  for (const k of keys) {
+    const v = fields[k];
+    if (typeof v === 'string' && v.length > MAX_VALUE_LENGTH) return `Field "${k.slice(0, 40)}" is ${v.length} characters (max ${MAX_VALUE_LENGTH})`;
+  }
+  return null;
+}
+
 export interface RunInput {
   source: ByteSource;
   filename?: string | null;
@@ -29,6 +49,8 @@ export interface RunInput {
   savedMapping?: SavedMapping;
   /** How many records to sample for field discovery and mapping. */
   sampleSize?: number;
+  /** Live catalog lookup for the stale-record and price-swing guards (feedback round 1, #2 and #3). */
+  catalog?: CatalogLookup;
 }
 
 export interface FatalError {
@@ -90,6 +112,7 @@ export async function analyzeFile(input: RunInput): Promise<Analysis> {
     let seen = 0;
     for await (const event of detection.adapter.read(decodeChunks(input.source(), decode), input.readOptions)) {
       if (event.type !== 'record') continue;
+      if (recordTooLarge(event.record.fields)) continue; // don't let one huge record define the field set
       for (const [k, v] of Object.entries(event.record.fields)) {
         const samples = fields.get(k) ?? [];
         if (samples.length < 20 && !isBlank(v)) samples.push(v);
@@ -138,7 +161,17 @@ export interface RunResult {
   status: RunStatus;
   format: string | null;
   encoding: DecodeResult['encoding'];
-  counts: { total: number; accepted: number; acceptedWithWarnings: number; quarantined: number; duplicateSkus: number };
+  counts: {
+    total: number;
+    accepted: number;
+    acceptedWithWarnings: number;
+    quarantined: number;
+    duplicateSkus: number;
+    /** Older than the catalog by supplier timestamp; not applied. */
+    skippedStale: number;
+    /** Accepted but suspicious against the catalog (e.g. price swing); holds the run. */
+    flaggedForReview: number;
+  };
   errorRate: number;
   maxErrorRate: number;
   policy: { importType: string; overridden: boolean; overrideReason: string | null };
@@ -148,6 +181,8 @@ export interface RunResult {
   durationMs: number;
   recordsPerSecond: number;
   decisionReason: string;
+  /** Why the run was held, one entry per rule that triggered. Empty unless HELD_FOR_REVIEW. */
+  holdReasons: string[];
 }
 
 /**
@@ -163,12 +198,12 @@ export async function processRecords(input: RunInput, mapping: Record<string, Ca
   const writable = new Set<CanonicalFieldName>(importType.writableFields);
   const aggregator = new IssueAggregator();
   const decode: DecodeResult = { encoding: 'utf-8' };
-  const counts = { total: 0, accepted: 0, acceptedWithWarnings: 0, quarantined: 0, duplicateSkus: 0 };
+  const counts = { total: 0, accepted: 0, acceptedWithWarnings: 0, quarantined: 0, duplicateSkus: 0, skippedStale: 0, flaggedForReview: 0 };
   const seenSkus = new Set<string>();
   const knownFields = new Set(analysis?.fields.map((f) => f.name) ?? Object.keys(mapping));
   const lateFields = new Set<string>();
 
-  const finish = (status: RunStatus, decisionReason: string, fatal: FatalError | null = null): RunResult => {
+  const finish = (status: RunStatus, decisionReason: string, fatal: FatalError | null = null, holdReasons: string[] = []): RunResult => {
     const durationMs = Math.round(performance.now() - started);
     const errorRate = counts.total ? counts.quarantined / counts.total : 0;
     return {
@@ -185,6 +220,7 @@ export async function processRecords(input: RunInput, mapping: Record<string, Ca
       durationMs,
       recordsPerSecond: durationMs ? Math.round((counts.total / durationMs) * 1000) : counts.total,
       decisionReason,
+      holdReasons,
     };
   };
 
@@ -192,7 +228,7 @@ export async function processRecords(input: RunInput, mapping: Record<string, Ca
 
   // Run-level notes: unmapped fields and mapped fields this import type ignores.
   for (const m of analysis?.proposal?.matches ?? []) {
-    if (!(m.sourceField in mapping) && m.status !== 'ignored') {
+    if (!Object.hasOwn(mapping, m.sourceField) && m.status !== 'ignored') {
       aggregator.add({ code: 'FIELD_UNMAPPED', severity: 'info', sourceField: m.sourceField, message: 'Not mapped' });
     }
   }
@@ -220,6 +256,14 @@ export async function processRecords(input: RunInput, mapping: Record<string, Ca
         continue;
       }
       const { fields, location, raw } = event.record;
+      const tooLarge = recordTooLarge(fields);
+      if (tooLarge) {
+        const issue: Issue = { code: 'RECORD_TOO_LARGE', severity: 'error', message: tooLarge, location };
+        counts.quarantined++;
+        aggregator.add(issue);
+        await sink.quarantined({ raw: null, issues: [issue], location });
+        continue;
+      }
       for (const k of Object.keys(fields)) {
         if (!knownFields.has(k) && !lateFields.has(k)) {
           lateFields.add(k);
@@ -288,6 +332,27 @@ export async function processRecords(input: RunInput, mapping: Record<string, Ca
         continue;
       }
 
+      // Guards against the live catalog.
+      const existing = input.catalog?.(product.sku) ?? null;
+      if (existing) {
+        if (product.updated_at && existing.updated_at && product.updated_at < existing.updated_at) {
+          issue('STALE_RECORD', 'updated_at', `Record from ${product.updated_at} is older than the catalog (${existing.updated_at})`, product.updated_at);
+          counts.skippedStale++;
+          issues.forEach((i) => aggregator.add(i));
+          continue;
+        }
+        const limit = importType.maxPriceChange;
+        const sameCurrency = !existing.currency || !product.currency || existing.currency === product.currency;
+        if (limit !== null && product.price !== null && existing.price && existing.price > 0 && sameCurrency) {
+          const change = Math.abs(product.price - existing.price) / existing.price;
+          if (change > limit) {
+            const pctChange = `${product.price > existing.price ? '+' : '-'}${Math.round(change * 100)}%`;
+            issue('PRICE_SWING', 'price', `Price ${existing.price} -> ${product.price} (${pctChange})`, `${existing.price} -> ${product.price} (${pctChange})`);
+            counts.flaggedForReview++;
+          }
+        }
+      }
+
       if (seenSkus.has(product.sku)) {
         counts.duplicateSkus++;
         issue('DUPLICATE_SKU', 'sku', `SKU ${product.sku} seen before; this record wins`, product.sku);
@@ -309,10 +374,23 @@ export async function processRecords(input: RunInput, mapping: Record<string, Ca
   }
   const errorRate = counts.quarantined / counts.total;
   const pct = (n: number) => `${(n * 100).toFixed(1)}%`;
-  if (errorRate > policy.maxErrorRate) {
+  const overRate = errorRate > policy.maxErrorRate;
+  const overCount = counts.quarantined >= importType.minQuarantinedToHold;
+  const holdReasons: string[] = [];
+  if (overRate && overCount) {
+    holdReasons.push(`${pct(errorRate)} of records were quarantined, above the ${pct(policy.maxErrorRate)} limit for ${importType.label.toLowerCase()} imports.`);
+  }
+  if (counts.flaggedForReview > 0) {
+    const n = counts.flaggedForReview;
+    holdReasons.push(`${n} price${n === 1 ? '' : 's'} changed by more than ${Math.round((importType.maxPriceChange ?? 0) * 100)}% against the catalog.`);
+  }
+  if (holdReasons.length) {
+    return finish('HELD_FOR_REVIEW', `${holdReasons.join(' ')} Nothing was applied; review and approve or reject the run.`, null, holdReasons);
+  }
+  if (overRate) {
     return finish(
-      'HELD_FOR_REVIEW',
-      `${pct(errorRate)} of records were quarantined, above the ${pct(policy.maxErrorRate)} limit for ${importType.label.toLowerCase()} imports. Nothing was applied; review and approve or reject the run.`,
+      'COMMITTED',
+      `${pct(errorRate)} of records were quarantined, above the ${pct(policy.maxErrorRate)} limit, but only ${counts.quarantined} (the run is held from ${importType.minQuarantinedToHold}); the rest was applied.`,
     );
   }
   return finish('COMMITTED', `${pct(errorRate)} of records were quarantined, within the ${pct(policy.maxErrorRate)} limit.`);

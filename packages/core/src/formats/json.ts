@@ -163,7 +163,9 @@ export const jsonAdapter: FormatAdapter = {
       // half-applying a full catalog is worse than not applying it.
       throw new FormatError(
         'FILE_UNPARSEABLE',
-        `JSON is malformed after ${count} records: ${(err as Error).message}`,
+        count
+          ? `JSON is malformed after ${count} records: ${(err as Error).message}`
+          : `JSON is malformed: ${(err as Error).message}`,
         'The export may have been cut off. Ask the partner to resend the complete file.',
       );
     }
@@ -188,10 +190,18 @@ export const ndjsonAdapter: FormatAdapter = {
 
   async *read(text: AsyncIterable<string>): AsyncIterable<AdapterEvent> {
     let index = 0;
-    for await (const { line, lineNo } of lines(text)) {
-      if (!line.trim()) continue;
+    for await (const { line, lineNo, tooLong } of lines(text)) {
+      if (!tooLong && !line.trim()) continue;
       const location = { index, line: lineNo };
       index++;
+      if (tooLong) {
+        yield {
+          type: 'issue',
+          raw: null,
+          issue: { code: 'RECORD_TOO_LARGE', severity: 'error', message: `Line ${lineNo} is longer than 1 MB`, location },
+        };
+        continue;
+      }
       let value: unknown;
       try {
         value = JSON.parse(line);

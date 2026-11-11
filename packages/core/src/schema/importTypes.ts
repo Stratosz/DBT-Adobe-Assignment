@@ -17,6 +17,16 @@ export interface ImportTypeConfig {
   writableFields: CanonicalFieldName[];
   /** Max share of records that may be quarantined (0..1) before the run is HELD_FOR_REVIEW. */
   maxErrorRate: number;
+  /**
+   * The error rate only holds a run when at least this many records were quarantined, so a
+   * single typo in a 3-row file does not block the other two (feedback round 1, #4).
+   */
+  minQuarantinedToHold: number;
+  /**
+   * Max relative price change vs the live catalog before a record is flagged PRICE_SWING and the
+   * run is held for review (feedback round 1, #3). null = no price check for this import type.
+   */
+  maxPriceChange: number | null;
 }
 
 export const IMPORT_TYPE_IDS = ['full_catalog', 'price_update', 'inventory_update'] as const;
@@ -30,6 +40,8 @@ export const IMPORT_TYPES: Record<ImportTypeId, ImportTypeConfig> = {
     requiredFields: ['sku', 'name', 'price'],
     writableFields: ['sku', 'name', 'price', 'currency', 'quantity', 'availability', 'gtin', 'brand', 'category', 'url', 'updated_at'],
     maxErrorRate: 0.05,
+    minQuarantinedToHold: 3,
+    maxPriceChange: 0.5,
   },
   price_update: {
     id: 'price_update',
@@ -38,6 +50,8 @@ export const IMPORT_TYPES: Record<ImportTypeId, ImportTypeConfig> = {
     requiredFields: ['sku', 'price'],
     writableFields: ['sku', 'price', 'currency', 'updated_at'],
     maxErrorRate: 0.02,
+    minQuarantinedToHold: 2,
+    maxPriceChange: 0.5,
   },
   inventory_update: {
     id: 'inventory_update',
@@ -46,6 +60,8 @@ export const IMPORT_TYPES: Record<ImportTypeId, ImportTypeConfig> = {
     requiredFields: ['sku', 'quantity'],
     writableFields: ['sku', 'quantity', 'availability', 'updated_at'],
     maxErrorRate: 0.1,
+    minQuarantinedToHold: 5,
+    maxPriceChange: null,
   },
 };
 
