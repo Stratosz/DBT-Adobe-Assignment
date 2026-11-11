@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch --clear-screen=false src/server.ts",
-    "start": "tsx src/server.ts"
+    "dev": "tsx watch --clear-screen=false --include ../../config --include ../../fixtures/partners.json src/server.ts",
+    "start": "tsx src/server.ts",
+    "dev:debug": "tsx watch --clear-screen=false --inspect --include ../../config --include ../../fixtures/partners.json src/server.ts"
   },
   "dependencies": {
     "@fastify/helmet": "^13.2.0",

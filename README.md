@@ -8,7 +8,7 @@ Built for the Adobe Forward Deployed Engineer take-home and told as a customer e
 2. **Pilot feedback round 1:** [docs/feedback-round-1.md](docs/feedback-round-1.md) records what the customer's ops lead, InfoSec and finance asked for, what we changed, what we negotiated and what we deferred. The security posture is in [SECURITY.md](SECURITY.md).
 
 **Contents:**
-[Quick start](#quick-start) · [Demo script](#demo-script) · [What it does](#what-it-does) · [Architecture](#architecture) · [Key decisions](#key-decisions-and-trade-offs) · [Security](#security) · [Assumptions](#assumptions) · [Testing](#testing) · [Operations](#observability-and-operations) · [Performance and scaling](#performance-and-scaling) · [Limitations and next steps](#known-limitations-and-what-i-would-do-next) · [Use of AI](#use-of-ai)
+[Quick start](#quick-start) · [Local development](#local-development) · [Demo script](#demo-script) · [What it does](#what-it-does) · [Architecture](#architecture) · [Key decisions](#key-decisions-and-trade-offs) · [Security](#security) · [Assumptions](#assumptions) · [Testing](#testing) · [Operations](#observability-and-operations) · [Performance and scaling](#performance-and-scaling) · [Limitations and next steps](#known-limitations-and-what-i-would-do-next) · [Use of AI](#use-of-ai)
 
 ## Quick start
 
@@ -48,6 +48,23 @@ npm run ingest -- fixtures/peak/catalog.json --partner peak --accept-suggestions
 - API docs (OpenAPI / Swagger UI): http://localhost:3000/docs
 - State lives in `./data` (SQLite database and stored uploads). Delete the folder to start fresh.
 - Configuration is through environment variables, validated at startup. See `apps/api/src/server.ts`.
+
+## Local development
+
+`npm run dev` starts two processes with live reload:
+
+| Process           | URL                                         | Reloads when                                                                                                                                                         |
+| ----------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| UI (Vite)         | http://localhost:5173                       | any file in `apps/web/src`: hot module replacement, no page reload                                                                                                   |
+| API (`tsx watch`) | http://localhost:3000 (`/docs` for Swagger) | any imported source in `apps/api/src` or `packages/core/src`, plus `config/*.json` and `fixtures/partners.json`, which are read at startup. Restarts take about 1 s. |
+
+Notes:
+
+- **Use :5173 in dev.** In dev, `http://localhost:3000/` redirects there, so you never see an old build left in `apps/web/dist` by `npm start`.
+- **Changes to users or suppliers** (`config/api-keys.demo.json`, `fixtures/partners.json`) restart the API. Reload the page to pick up your new name or role, because the UI reads them at sign-in.
+- **Processing during a restart:** a run being processed when the API restarts is re-queued and finishes after the restart.
+- **Debugging:** `npm run dev:debug -w apps/api` (with `npm run dev -w apps/web` alongside), then use "Attach to API" in VS Code (`.vscode/launch.json`).
+- **Tests in watch mode:** `npm run test:watch`.
 
 ## Demo script
 

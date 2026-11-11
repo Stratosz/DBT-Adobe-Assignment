@@ -8,6 +8,13 @@ import { z } from 'zod';
 const { REPO_ROOT, buildApp } = await import('./app.ts');
 const { KeyStore } = await import('./auth.ts');
 
+/**
+ * `npm run dev` (tsx watch, restarted on every save): pretty logs, fast restarts, and the UI comes
+ * from Vite on :5173 with hot reload, never from a stale build in apps/web/dist.
+ */
+const DEV_SERVER = process.env.npm_lifecycle_event === 'dev' || process.env.npm_lifecycle_event === 'dev:debug';
+const VITE_URL = process.env.VITE_URL ?? 'http://localhost:5173';
+
 /** Configuration is validated once at startup; a bad value fails fast with a clear message. */
 const DEMO_KEYS = join(REPO_ROOT, 'config', 'api-keys.demo.json');
 const Env = z.object({
@@ -21,7 +28,12 @@ const Env = z.object({
   MAX_UPLOAD_MB: z.coerce.number().int().min(1).max(2048).default(250),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
   LOG_FORMAT: z.enum(['pretty', 'json']).optional(),
-  SHUTDOWN_TIMEOUT_MS: z.coerce.number().int().min(0).default(25_000),
+  // In dev a restart should not wait for a long run; the interrupted run is recovered on start.
+  SHUTDOWN_TIMEOUT_MS: z.coerce
+    .number()
+    .int()
+    .min(0)
+    .default(DEV_SERVER ? 1_000 : 25_000),
 });
 
 const parsed = Env.safeParse(process.env);
@@ -38,7 +50,8 @@ if (usingDemoKeys && env.NODE_ENV === 'production' && env.ALLOW_DEMO_KEYS !== 't
 }
 
 mkdirSync(env.DATA_DIR, { recursive: true });
-const pretty = env.LOG_FORMAT ? env.LOG_FORMAT === 'pretty' : process.stdout.isTTY;
+// concurrently (npm run dev) is not a TTY, so pretty-print explicitly in dev.
+const pretty = env.LOG_FORMAT ? env.LOG_FORMAT === 'pretty' : process.stdout.isTTY || DEV_SERVER;
 
 const { app } = await buildApp({
   dbPath: env.DB_PATH ?? join(env.DATA_DIR, 'feed.db'),
@@ -55,9 +68,12 @@ const { app } = await buildApp({
 });
 if (usingDemoKeys) app.log.warn('Using the public demo API keys from config/api-keys.demo.json. Do not use them outside a demo.');
 
-// In "npm start" / Docker the API also serves the built UI.
+// In "npm start" / Docker the API also serves the built UI. In dev, :3000 sends you to Vite instead,
+// so you never look at an old build by accident.
 const webDist = join(REPO_ROOT, 'apps', 'web', 'dist');
-if (existsSync(webDist)) {
+if (DEV_SERVER) {
+  app.get('/', { schema: { hide: true } }, (_req, reply) => reply.redirect(VITE_URL));
+} else if (existsSync(webDist)) {
   await app.register(fastifyStatic, { root: webDist });
   app.setNotFoundHandler((req, reply) =>
     req.url.startsWith('/api') ? reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'No such endpoint' } }) : reply.sendFile('index.html'),
@@ -82,3 +98,4 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
 }
 
 await app.listen({ port: env.PORT, host: env.HOST });
+if (DEV_SERVER) app.log.info(`API ready on :${env.PORT}. Open the UI at ${VITE_URL} (hot reload); /docs for the API.`);
