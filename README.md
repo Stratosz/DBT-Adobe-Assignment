@@ -22,7 +22,8 @@ npm run dev          # API on :3000, UI on http://localhost:5173
 Or, with Docker installed and no Node needed:
 
 ```bash
-docker compose up --build      # UI + API on http://localhost:3000
+npm run docker:dev             # live-reload dev container: UI on :3000, API on :3001
+docker compose up --build      # production-like image: UI + API on :3000 (rebuild to see changes)
 ```
 
 Sign in with one of the demo users. The UI has buttons for them in dev and demo builds.
@@ -51,7 +52,26 @@ npm run ingest -- fixtures/peak/catalog.json --partner peak --accept-suggestions
 
 ## Local development
 
-`npm run dev` starts two processes with live reload:
+### In Docker (nothing installed on the host)
+
+```bash
+npm run docker:dev        # = docker compose -f compose.dev.yaml up --build
+```
+
+| URL                   | What                      | Reloads when                                                                                                     |
+| --------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| http://localhost:3000 | UI (Vite dev server)      | any file in `apps/web/src`: hot module replacement                                                               |
+| http://localhost:3001 | API (`/docs` for Swagger) | `apps/api/src`, `packages/core/src`, `config/*.json` or `fixtures/partners.json` change; restarts take about 1 s |
+
+- **Source:** the repo is bind-mounted. File changes are picked up by polling, which is reliable on macOS and Windows bind mounts.
+- **Dependencies** are installed inside the container, into volumes (Linux binaries), and reinstalled automatically when `package-lock.json` changes. Your host `node_modules` is never used.
+- **Data** lives in the `feed-dev-data` volume. Reset the database and the installed dependencies with `npm run docker:dev:reset`.
+- **Debugging:** port 9229 is published for the Node inspector.
+- **Not for dev:** `compose.yaml` (`docker compose up`) is the _production-like_ image. Its UI is built into the image, so it only changes after `--build`.
+
+### On the host
+
+With Node 22.13+ installed, `npm run dev` starts the same two processes, on :5173 (UI) and :3000 (API):
 
 | Process           | URL                                         | Reloads when                                                                                                                                                         |
 | ----------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

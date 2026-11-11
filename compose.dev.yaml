@@ -1,0 +1,38 @@
+# Live-reload development inside Docker. Nothing to install on the host.
+#
+#   docker compose -f compose.dev.yaml up --build     (or: npm run docker:dev)
+#
+#   http://localhost:3000  UI with hot reload (Vite)      edits in apps/web/src appear instantly
+#   http://localhost:3001  API (/docs for Swagger)        restarts on edits in apps/api, packages/core,
+#                                                         config/*.json, fixtures/partners.json
+#
+# The repo is bind-mounted; node_modules live in container volumes (Linux binaries), so the
+# host's node_modules (macOS) are never used. Data is kept in the feed-dev-data volume:
+#   docker compose -f compose.dev.yaml down -v        resets the database and installed deps
+services:
+  feed-intake-dev:
+    build:
+      context: .
+      target: dev
+    ports:
+      - '3000:5173' # UI (Vite dev server, proxies /api to the API inside the container)
+      - '3001:3000' # API
+      - '9229:9229' # Node inspector (npm run dev:debug)
+    environment:
+      ALLOW_DEMO_KEYS: 'true'
+      VITE_URL: http://localhost:3000 # where the API's "/" redirect sends the browser
+    volumes:
+      - .:/app
+      - dev-node-modules:/app/node_modules
+      - dev-node-modules-web:/app/apps/web/node_modules
+      - dev-node-modules-api:/app/apps/api/node_modules
+      - dev-node-modules-core:/app/packages/core/node_modules
+      - feed-dev-data:/data
+    stop_grace_period: 5s
+
+volumes:
+  dev-node-modules:
+  dev-node-modules-web:
+  dev-node-modules-api:
+  dev-node-modules-core:
+  feed-dev-data:

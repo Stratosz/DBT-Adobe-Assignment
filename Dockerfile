@@ -1,4 +1,22 @@
-# Two stages: build the UI with dev dependencies, then a slim runtime image without them.
+# Stages:
+#   dev      live-reload development container; the source is bind-mounted (compose.dev.yaml)
+#   build    builds the UI with dev dependencies
+#   runtime  slim production image without dev dependencies (compose.yaml)
+
+FROM node:22-bookworm-slim AS dev
+WORKDIR /app
+ENV DEV_IN_DOCKER=true \
+    CHOKIDAR_USEPOLLING=true \
+    DATA_DIR=/data
+# Dependencies are installed at start into named volumes (see scripts/docker-dev.sh), so the
+# image stays generic and host node_modules (macOS binaries) are never used inside Linux.
+# Pre-create the node_modules mount points so the named volumes are owned by "node", not root.
+RUN mkdir -p /data /app/node_modules /app/apps/web/node_modules /app/apps/api/node_modules /app/packages/core/node_modules \
+ && chown -R node:node /data /app
+USER node
+EXPOSE 3000 5173 9229
+CMD ["sh", "scripts/docker-dev.sh"]
+
 
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
