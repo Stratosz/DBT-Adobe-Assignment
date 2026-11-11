@@ -3,7 +3,7 @@
 #   build    builds the UI with dev dependencies
 #   runtime  slim production image without dev dependencies (compose.yaml)
 
-FROM node:22-bookworm-slim AS dev
+FROM node:26-bookworm-slim AS dev
 WORKDIR /app
 ENV DEV_IN_DOCKER=true \
     CHOKIDAR_USEPOLLING=true \
@@ -18,7 +18,7 @@ EXPOSE 3000 5173 9229
 CMD ["sh", "scripts/docker-dev.sh"]
 
 
-FROM node:22-bookworm-slim AS build
+FROM node:26-bookworm-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY packages/core/package.json packages/core/
@@ -30,7 +30,7 @@ COPY . .
 ARG VITE_DEMO_KEYS=true
 RUN VITE_DEMO_KEYS=$VITE_DEMO_KEYS npm run build -w apps/web
 
-FROM node:22-bookworm-slim AS runtime
+FROM node:26-bookworm-slim AS runtime
 ENV NODE_ENV=production \
     PORT=3000 \
     DATA_DIR=/data \
