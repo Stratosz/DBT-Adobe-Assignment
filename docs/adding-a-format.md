@@ -28,6 +28,8 @@ export const xmlAdapter: FormatAdapter = {
 };
 ```
 
+Build each record's `fields` with `emptyRecord()` (or `flatten()`, which uses it), never `{}`. That keeps keys like `__proto__` from touching object prototypes. Size limits (500 fields, 10,000 characters per value) are enforced by the pipeline, so you don't need to repeat them. A streaming parser should still avoid buffering unbounded input for a single record.
+
 Rules the contract tests enforce:
 
 - Yield **flat** `fields`. Use `flatten()` for nested data.

@@ -25,5 +25,18 @@ Bad data comes in two shapes:
 ## Consequences
 
 - One rule covers both kinds of failure, and it is explainable in one sentence ("65% of rows were bad, above the 5% limit").
-- Small files are sensitive: 1 bad row in 20 is 5%. A minimum-count rule ("hold only if more than 5% _and_ more than N rows") is a reasonable next step.
+- Small files are sensitive: 1 bad row in 20 is 5%. This was addressed in round 1 (below).
 - Approval is a human bottleneck, so `feed_runs_waiting` is exported for alerting.
+
+## Amendments (feedback round 1)
+
+- **Minimum count** ([#4](../feedback-round-1.md#4-one-typo-held-a-3-row-file-ops)): a run is held for its bad-row rate only when the rate is over the limit **and** at least `minQuarantinedToHold` rows were set aside:
+  - `full_catalog`: 3;
+  - `price_update`: 2;
+  - `inventory_update`: 5.
+
+  Below that, the run commits and the decision message says why it was not held.
+
+- **Review holds** ([#3](../feedback-round-1.md#3-prices-90-too-low-went-live-finance)): a second reason to hold, independent of the bad-row rate. A valid price that moves more than `maxPriceChange` (50%; off for inventory updates) against the live catalog raises `PRICE_SWING`. Any `PRICE_SWING` holds the run, and the result lists every reason in `holdReasons`.
+- **Stale records** ([#2](../feedback-round-1.md#2-stock-went-backwards-ops)) are a third outcome besides accepted and set aside. Records older than the catalog are skipped (`STALE_RECORD`) and don't count as bad rows.
+- **Who decides:** approving or rejecting a held run needs the reviewer role. The person who uploaded the file cannot approve it (four-eyes rule; admins can, as the escalation path). Overriding the limit on upload also needs the reviewer role.

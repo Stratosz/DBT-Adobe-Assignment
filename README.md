@@ -48,7 +48,18 @@ npm run ingest -- fixtures/peak/catalog.json --partner peak --accept-suggestions
 
 - API docs (OpenAPI / Swagger UI): http://localhost:3000/docs
 - State lives in `./data` (SQLite database and stored uploads). Delete the folder to start fresh.
-- Configuration is through environment variables, validated at startup. See `apps/api/src/server.ts`.
+- Configuration is through environment variables, validated at startup (`apps/api/src/server.ts`). A bad value stops the server with a clear message:
+
+  | Variable                  | Default                       | Purpose                                                            |
+  | ------------------------- | ----------------------------- | ------------------------------------------------------------------ |
+  | `PORT`, `HOST`            | `3000`, `0.0.0.0`             | Where the API listens                                              |
+  | `DATA_DIR`, `DB_PATH`     | `./data`, `$DATA_DIR/feed.db` | Uploads and the SQLite database                                    |
+  | `API_KEYS_FILE`           | `config/api-keys.demo.json`   | Key file (hashed keys and roles)                                   |
+  | `ALLOW_DEMO_KEYS`         | `false`                       | Must be `true` to use the demo key file with `NODE_ENV=production` |
+  | `MAX_UPLOAD_MB`           | `250`                         | Upload size limit                                                  |
+  | `LOG_LEVEL`, `LOG_FORMAT` | `info`, auto                  | `pretty` in a terminal and in dev, `json` otherwise                |
+  | `SHUTDOWN_TIMEOUT_MS`     | `25000` (1000 in dev)         | How long SIGTERM waits for the current run                         |
+  | `VITE_URL`                | `http://localhost:5173`       | Where the API's `/` redirects in dev                               |
 
 ## Local development
 
@@ -67,6 +78,7 @@ npm run docker:dev        # = docker compose -f compose.dev.yaml up --build
 - **Dependencies** are installed inside the container, into volumes (Linux binaries), and reinstalled automatically when `package-lock.json` changes. Your host `node_modules` is never used.
 - **Data** lives in the `feed-dev-data` volume. Reset the database and the installed dependencies with `npm run docker:dev:reset`.
 - **Debugging:** port 9229 is published for the Node inspector.
+- **Localhost only:** all ports are bound to `127.0.0.1`, because the container uses the public demo keys.
 - **Not for dev:** `compose.yaml` (`docker compose up`) is the _production-like_ image. Its UI is built into the image, so it only changes after `--build`.
 
 ### On the host
@@ -206,8 +218,14 @@ packages/core/src
 apps/api/src    app.ts (routes, schemas, security plugins), auth.ts, runService.ts (commands + worker),
                 db.ts (migrations, queue, staging, audit), metrics.ts, server.ts (config, shutdown)
 apps/web/src    App.tsx, api.ts, styles.css
-scripts/        fixture generator, CLI, large-feed generator, benchmark
+config/         API key files (demo keys, stored hashed)
+fixtures/       demo supplier files and supplier config (partners.json)
+scripts/        fixture generator, CLI, large-feed generator, benchmark, docker-dev.sh
 docs/           customer note, feedback round 1, ADRs 1-6, how to add a format
+Dockerfile      stages: dev (live reload), build, runtime (production-like)
+compose.yaml    production-like container;  compose.dev.yaml: live-reload dev container
+.github/        CI (lint, format, typecheck, tests, audit, image smoke test), Dependabot
+.vscode/        attach-to-API and debug-test launch configs
 ```
 
 The core is pure: it takes a byte source, the supplier's locale, a mapping and, optionally, a catalog lookup function. It returns accepted and set-aside records through a sink, plus a decision. The API supplies database-backed implementations; the CLI and the benchmark use in-memory ones.
@@ -372,7 +390,8 @@ I built this together with Claude (Anthropic) as a pair programmer, across two s
 - per-import-type thresholds that can be overridden per upload;
 - a pluggable format layer;
 - no LLM in the product;
-- for round 1: framing the hardening work as a customer feedback round, which requests to implement, API keys with roles over sessions or OIDC for the pilot, and which hygiene items mattered.
+- for round 1: framing the hardening work as a customer feedback round, which requests to implement, API keys with roles over sessions or OIDC for the pilot, and which hygiene items mattered;
+- for the developer experience: live reload, both on the host and inside a Docker dev container.
 
 **AI generated** most of the code, tests, fixtures and first drafts of these docs, working from that plan.
 

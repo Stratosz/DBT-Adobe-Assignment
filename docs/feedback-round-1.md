@@ -70,7 +70,7 @@ The full threat model is in [SECURITY.md](../SECURITY.md).
 
 **Underlying need:** for any one SKU, never replace newer supplier data with older supplier data.
 
-**Change:** before staging a record, compare its `updated_at` with the product already in the catalog. If the incoming record is older, skip it with a `STALE_RECORD` warning and count it as "skipped as older than the catalog". Records without a timestamp are applied, because there is nothing to compare; the supplier config should require timestamps for hourly feeds.
+**Change:** before staging a record, compare its `updated_at` with the product already in the catalog. If the incoming record is older, skip it with a `STALE_RECORD` warning and count it as "skipped as older than the catalog". Records without a timestamp are applied, because there is nothing to compare; the supplier config should require timestamps for hourly feeds. The same check runs again when staged rows are committed, so a held run approved days later never overwrites data that a newer run committed in the meantime.
 
 **Why not order runs by arrival time:** arrival order is exactly what went wrong. The supplier's own timestamp is the only reliable clock.
 
@@ -108,7 +108,7 @@ The decision message explains which rule applied.
 - **Recovery on startup:** runs left in `PROCESSING` by a crash are put back on the queue. Processing is idempotent, because staging is cleared first and nothing reaches the catalog until commit.
 - **Graceful shutdown:** on `SIGTERM` the server stops taking requests and lets the current run finish, up to a timeout. Anything unfinished is recovered on the next start.
 
-**Not done (documented):** a separate queue service and multiple workers. The production path (SQS or BullMQ, Postgres, workers scaled by queue depth) is in [ADR 6](adr/0006-async-processing.md).
+**Not done (documented):** a separate queue service and multiple workers. Approving, rejecting and confirming a mapping use the same database lock as the worker, so they can wait a few seconds behind a large file. The production path (SQS or BullMQ, Postgres, workers scaled by queue depth) is in [ADR 6](adr/0006-async-processing.md).
 
 ## 6. "We can't undo a wrong mapping" (ops)
 

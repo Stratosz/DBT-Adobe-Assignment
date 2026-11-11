@@ -54,6 +54,13 @@ This covers the system as delivered after [feedback round 1](docs/feedback-round
 - **Configuration** is validated at startup and fails fast on bad values.
 - **Secrets:** the key file is mounted from the platform's secret store (`API_KEYS_FILE`). Keys are never stored in plaintext.
 
+- **Local development** (`compose.dev.yaml`, `npm run dev`) is not a deployment:
+  - it bind-mounts the source;
+  - it uses the public demo keys;
+  - it publishes the Node inspector port.
+
+  The dev container's ports are bound to `127.0.0.1` only, so other machines on the network can't reach the demo keys or the debugger.
+
 ## Accepted risks and next steps
 
 | Item                                                                           | Status                                                                                                                                                                   |

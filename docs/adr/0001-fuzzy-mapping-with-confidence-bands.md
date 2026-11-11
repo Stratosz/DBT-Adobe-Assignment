@@ -39,3 +39,9 @@ Decisions are saved per supplier, including "don't import this column", so the n
 - The first file after a rename needs one confirmation. Later files don't.
 - The thresholds are judgment calls, tuned on the fixtures. In production they should be calibrated against confirmed decisions; the stored decisions are exactly that training data.
 - An LLM could add suggestions in the 0.65–0.90 band without changing this contract.
+
+## Amendments (feedback round 1)
+
+- **Who confirms:** only the **reviewer** role (or admin) can confirm a mapping ([ADR 5](0005-api-keys-and-roles.md)). Uploaders see what is waiting but cannot decide.
+- **Saved decisions are editable:** admins can change or remove them (`PUT` / `DELETE /api/partners/{id}/mappings/{sourceField}`). Every change is audited with who made it. A removed decision is suggested again on the next file.
+- **The customer asked to remove the confirmation step** entirely. We kept it and proposed lower-friction alternatives instead ([feedback round 1, #7](../feedback-round-1.md#7-just-map-everything-automatically-pushed-back)).

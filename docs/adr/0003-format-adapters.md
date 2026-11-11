@@ -28,3 +28,11 @@ Feeds arrive as CSV today and as JSON/NDJSON from newer suppliers. XML and Excel
 - Adding a format is local work: see [adding-a-format.md](../adding-a-format.md).
 - Normalizers must accept `unknown`, because JSON gives numbers and booleans while CSV gives strings. The test "CSV and JSON normalize identically" guards this.
 - Flattening is lossy for complex arrays (variants, multiple images). Supporting those needs a richer target model, not just a different adapter.
+
+## Amendments (feedback round 1)
+
+- **Size limits** apply to every adapter's output, enforced by the pipeline, so a new adapter gets them for free:
+  - 500 fields per record and 10,000 characters per value (`RECORD_TOO_LARGE`, record set aside);
+  - CSV records over 1 MB and NDJSON lines over 1 MB are set aside without buffering the rest of the file.
+- **Records are null-prototype objects** (`emptyRecord()` in `flatten.ts`), so a column or key named `__proto__` or `constructor` is plain data. Adapters that build records by hand must use `emptyRecord()`.
+- **Dependencies:** `stream-json` was upgraded from 1.x to 3.x (ESM API: `pick.asStream()`, `streamArray.asStream()`) and `csv-parse` from 5 to 7, both after `npm audit` findings.

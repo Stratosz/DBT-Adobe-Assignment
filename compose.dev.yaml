@@ -15,9 +15,10 @@ services:
       context: .
       target: dev
     ports:
-      - '3000:5173' # UI (Vite dev server, proxies /api to the API inside the container)
-      - '3001:3000' # API
-      - '9229:9229' # Node inspector (npm run dev:debug)
+      # Bound to localhost only: this container uses the public demo keys and exposes the debugger.
+      - '127.0.0.1:3000:5173' # UI (Vite dev server, proxies /api to the API inside the container)
+      - '127.0.0.1:3001:3000' # API
+      - '127.0.0.1:9229:9229' # Node inspector (npm run dev:debug)
     environment:
       ALLOW_DEMO_KEYS: 'true'
       VITE_URL: http://localhost:3000 # where the API's "/" redirect sends the browser
