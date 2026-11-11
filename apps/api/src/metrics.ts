@@ -53,6 +53,16 @@ export function createMetrics(countWaiting: () => Record<string, number>) {
       for (const status of ['AWAITING_MAPPING', 'HELD_FOR_REVIEW']) this.set({ status }, counts[status] ?? 0);
     },
   });
+  new client.Gauge({
+    name: 'feed_queue_depth',
+    help: 'Runs queued for the worker (RECEIVED = waiting for analysis, QUEUED = waiting for processing)',
+    labelNames: ['status'] as const,
+    registers: [registry],
+    collect() {
+      const counts = countWaiting();
+      for (const status of ['RECEIVED', 'QUEUED', 'PROCESSING']) this.set({ status }, counts[status] ?? 0);
+    },
+  });
 
   return { registry, runs, records, issues, drift, duration };
 }

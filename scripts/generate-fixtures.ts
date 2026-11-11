@@ -85,7 +85,7 @@ mkdirSync(join(root, 'peak'), { recursive: true });
 {
   const header = 'Artikel-Nr.;Bezeichnung;Marke;Kategorie;VK-Preis;Währung;Lagerbestand;EAN;Farbe;Geändert am';
   const rows = nordwind.map((p, i) => [
-    p.sku, p.name, p.brand, p.cat, i % 3 === 0 ? deMoney(p.price) : '', 'EUR', p.qty, p.ean, p.color, '09.11.2026',
+    p.sku, p.name, p.brand, p.cat, i % 3 === 0 ? deMoney(p.price) : '', 'EUR', p.qty, p.ean, p.color, '01.12.2026',
   ].join(';'));
   rows.push(rows[3]!); // duplicate row from a bad join
   writeFileSync(join(root, 'nordwind', 'week3_catalog.csv'), toCp1252(`${header}\r\n${rows.join('\r\n')}\r\n`));

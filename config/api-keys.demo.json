@@ -1,0 +1,20 @@
+[
+  {
+    "id": "andrei",
+    "name": "Andrei (catalog ops)",
+    "role": "uploader",
+    "keyHash": "8c9f86460f9bc34b16dc6f21e212d757449ba266971846b4c4b781a8f2acbb04"
+  },
+  {
+    "id": "mara",
+    "name": "Mara (ops lead)",
+    "role": "reviewer",
+    "keyHash": "32dc90f8d497d0e9c2feb824612a5bd35883a01ba25a4555e173b3a31909a2f2"
+  },
+  {
+    "id": "tobias",
+    "name": "Tobias (platform admin)",
+    "role": "admin",
+    "keyHash": "ac5bb3526d3be432ba19fb1fc0712d350c160bd2169cd24401c9fcaeaac2d860"
+  }
+]

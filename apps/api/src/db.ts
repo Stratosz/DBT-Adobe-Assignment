@@ -9,7 +9,7 @@ import type { CanonicalFieldName, NormalizedProduct, PartnerLocale, ReadOptions,
  * when the run is COMMITTED (automatically, or by a human approving a held run). That is what
  * makes "held for review" safe: a bad file never touches the live catalog.
  */
-const SCHEMA = `
+const SCHEMA_V1 = `
 CREATE TABLE IF NOT EXISTS partners (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
@@ -88,7 +88,11 @@ export interface PartnerRow {
   readOptions: ReadOptions;
 }
 
-export type RunStatus = 'RECEIVED' | 'AWAITING_MAPPING' | 'PROCESSING' | 'COMMITTED' | 'HELD_FOR_REVIEW' | 'REJECTED' | 'FAILED';
+/**
+ * RECEIVED: queued for analysis. QUEUED: mapping settled, queued for processing.
+ * PROCESSING: a worker owns it. AWAITING_MAPPING / HELD_FOR_REVIEW: waiting for a person.
+ */
+export type RunStatus = 'RECEIVED' | 'AWAITING_MAPPING' | 'QUEUED' | 'PROCESSING' | 'COMMITTED' | 'HELD_FOR_REVIEW' | 'REJECTED' | 'FAILED';
 
 export interface RunRow {
   id: string;
@@ -108,6 +112,8 @@ export interface RunRow {
   result: unknown;
   fatal: unknown;
   commit: unknown;
+  createdBy: string | null;
+  attempts: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -124,7 +130,73 @@ export class Db {
   constructor(path: string) {
     this.sqlite = new DatabaseSync(path);
     this.sqlite.exec('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000; PRAGMA synchronous = NORMAL;');
-    this.sqlite.exec(SCHEMA);
+    this.migrate();
+  }
+
+  /**
+   * Forward-only migrations tracked in PRAGMA user_version. Each runs once, in a transaction.
+   * v1 is the MVP schema (IF NOT EXISTS, so MVP databases upgrade in place).
+   */
+  private migrate(): void {
+    const migrations: string[] = [
+      SCHEMA_V1,
+      // v2 (feedback round 1): who did what
+      `CREATE TABLE IF NOT EXISTS audit_events (
+         id INTEGER PRIMARY KEY AUTOINCREMENT,
+         at TEXT NOT NULL,
+         actor_id TEXT NOT NULL,
+         actor_role TEXT NOT NULL,
+         action TEXT NOT NULL,
+         run_id TEXT,
+         partner_id TEXT,
+         details_json TEXT
+       );
+       CREATE INDEX IF NOT EXISTS audit_run ON audit_events(run_id);
+       CREATE INDEX IF NOT EXISTS audit_partner ON audit_events(partner_id, at DESC);
+       ALTER TABLE runs ADD COLUMN created_by TEXT;
+       ALTER TABLE partner_mappings ADD COLUMN decided_by TEXT;`,
+      // v3: worker bookkeeping for async processing
+      `ALTER TABLE runs ADD COLUMN attempts INTEGER NOT NULL DEFAULT 0;
+       CREATE INDEX IF NOT EXISTS runs_status_created ON runs(status, created_at);`,
+    ];
+    const current = Number(this.sqlite.prepare('PRAGMA user_version').get()?.user_version ?? 0);
+    migrations.forEach((sql, i) => {
+      const version = i + 1;
+      if (version <= current) return;
+      this.transaction(() => {
+        this.sqlite.exec(sql);
+        this.sqlite.exec(`PRAGMA user_version = ${version}`);
+      });
+    });
+  }
+
+  schemaVersion(): number {
+    return Number(this.sqlite.prepare('PRAGMA user_version').get()?.user_version ?? 0);
+  }
+
+  // ---- audit ------------------------------------------------------------------------------
+  audit(actor: { id: string; role: string }, action: string, ctx: { runId?: string | null; partnerId?: string | null; details?: unknown } = {}): void {
+    this.sqlite
+      .prepare('INSERT INTO audit_events (at, actor_id, actor_role, action, run_id, partner_id, details_json) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(now(), actor.id, actor.role, action, ctx.runId ?? null, ctx.partnerId ?? null, json(ctx.details));
+  }
+
+  listAudit(filter: { runId?: string; partnerId?: string; limit?: number } = {}) {
+    const where: string[] = [];
+    const args: (string | number)[] = [];
+    if (filter.runId) {
+      where.push('run_id = ?');
+      args.push(filter.runId);
+    }
+    if (filter.partnerId) {
+      where.push('partner_id = ?');
+      args.push(filter.partnerId);
+    }
+    args.push(Math.min(filter.limit ?? 100, 500));
+    return this.sqlite
+      .prepare(`SELECT id, at, actor_id AS actorId, actor_role AS actorRole, action, run_id AS runId, partner_id AS partnerId, details_json FROM audit_events ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY id DESC LIMIT ?`)
+      .all(...args)
+      .map(({ details_json, ...rest }) => ({ ...rest, details: parse(details_json) }));
   }
 
   /** Async variant for streaming work. Callers must serialize (see RunService lock). */
@@ -179,30 +251,50 @@ export class Db {
 
   listMappings(partnerId: string) {
     return this.sqlite
-      .prepare('SELECT source_field AS sourceField, target, decided_at AS decidedAt, decided_in_run AS decidedInRun FROM partner_mappings WHERE partner_id = ? ORDER BY source_field')
+      .prepare(
+        'SELECT source_field AS sourceField, target, decided_at AS decidedAt, decided_in_run AS decidedInRun, decided_by AS decidedBy FROM partner_mappings WHERE partner_id = ? ORDER BY source_field',
+      )
       .all(partnerId);
   }
 
-  saveMappingDecisions(partnerId: string, runId: string, decisions: SavedMapping): void {
+  getMapping(partnerId: string, sourceField: string) {
+    return this.sqlite.prepare('SELECT source_field AS sourceField, target FROM partner_mappings WHERE partner_id = ? AND source_field = ?').get(partnerId, sourceField) ?? null;
+  }
+
+  saveMappingDecisions(partnerId: string, runId: string | null, decisions: SavedMapping, decidedBy: string): void {
     const stmt = this.sqlite.prepare(
-      `INSERT INTO partner_mappings (partner_id, source_field, target, decided_at, decided_in_run) VALUES (?, ?, ?, ?, ?)
-       ON CONFLICT(partner_id, source_field) DO UPDATE SET target = excluded.target, decided_at = excluded.decided_at, decided_in_run = excluded.decided_in_run`,
+      `INSERT INTO partner_mappings (partner_id, source_field, target, decided_at, decided_in_run, decided_by) VALUES (?, ?, ?, ?, ?, ?)
+       ON CONFLICT(partner_id, source_field) DO UPDATE SET target = excluded.target, decided_at = excluded.decided_at,
+         decided_in_run = excluded.decided_in_run, decided_by = excluded.decided_by`,
     );
     const at = now();
     this.transaction(() => {
-      for (const [source, target] of Object.entries(decisions)) stmt.run(partnerId, source, target ?? null, at, runId);
+      for (const [source, target] of Object.entries(decisions)) stmt.run(partnerId, source, target ?? null, at, runId, decidedBy);
     });
   }
 
+  deleteMapping(partnerId: string, sourceField: string): boolean {
+    return Number(this.sqlite.prepare('DELETE FROM partner_mappings WHERE partner_id = ? AND source_field = ?').run(partnerId, sourceField).changes) > 0;
+  }
+
+  /** Live catalog values used by the stale-record and price-swing guards. */
+  catalogLookup(partnerId: string) {
+    const stmt = this.sqlite.prepare('SELECT price, currency, updated_at FROM products WHERE partner_id = ? AND sku = ?');
+    return (sku: string) => {
+      const row = stmt.get(partnerId, sku);
+      return row ? { price: (row.price as number | null) ?? null, currency: (row.currency as string | null) ?? null, updated_at: (row.updated_at as string | null) ?? null } : null;
+    };
+  }
+
   // ---- runs -------------------------------------------------------------------------------
-  createRun(r: Pick<RunRow, 'id' | 'partnerId' | 'importType' | 'filename' | 'sizeBytes' | 'fileHash' | 'requestedFormat' | 'policy'>): void {
+  createRun(r: Pick<RunRow, 'id' | 'partnerId' | 'importType' | 'filename' | 'sizeBytes' | 'fileHash' | 'requestedFormat' | 'policy' | 'createdBy'>): void {
     const at = now();
     this.sqlite
       .prepare(
-        `INSERT INTO runs (id, partner_id, import_type, filename, size_bytes, file_hash, requested_format, status, policy_json, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, 'RECEIVED', ?, ?, ?)`,
+        `INSERT INTO runs (id, partner_id, import_type, filename, size_bytes, file_hash, requested_format, status, policy_json, created_by, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'RECEIVED', ?, ?, ?, ?)`,
       )
-      .run(r.id, r.partnerId, r.importType, r.filename, r.sizeBytes, r.fileHash, r.requestedFormat, json(r.policy), at, at);
+      .run(r.id, r.partnerId, r.importType, r.filename, r.sizeBytes, r.fileHash, r.requestedFormat, json(r.policy), r.createdBy, at, at);
   }
 
   updateRun(id: string, patch: Partial<Omit<RunRow, 'id' | 'createdAt' | 'updatedAt'>>): void {
@@ -254,6 +346,32 @@ export class Db {
     return { runId: row.id as string, fields: analysis.fields.map((f) => f.name), fingerprint: analysis.proposal?.fingerprint ?? '' };
   }
 
+  listRunsByStatus(statuses: RunStatus[]): RunRow[] {
+    return this.sqlite
+      .prepare(`SELECT * FROM runs WHERE status IN (${statuses.map(() => '?').join(', ')}) ORDER BY created_at`)
+      .all(...statuses)
+      .map(toRun);
+  }
+
+  hasQueuedRuns(): boolean {
+    return !!this.sqlite.prepare(`SELECT 1 FROM runs WHERE status IN ('RECEIVED', 'QUEUED') LIMIT 1`).get();
+  }
+
+  /**
+   * Atomically claim the oldest queued run (UPDATE ... RETURNING), so the same statement works
+   * when several workers share a database. Oldest-first keeps each supplier's files in order.
+   */
+  claimNextRun(): RunRow | null {
+    const row = this.sqlite
+      .prepare(
+        `UPDATE runs SET status = 'PROCESSING', attempts = attempts + 1, updated_at = ?
+         WHERE id = (SELECT id FROM runs WHERE status IN ('RECEIVED', 'QUEUED') ORDER BY created_at, rowid LIMIT 1)
+         RETURNING *`,
+      )
+      .get(now());
+    return row ? toRun(row) : null;
+  }
+
   countByStatus(): Record<string, number> {
     const rows = this.sqlite.prepare('SELECT status, COUNT(*) AS n FROM runs GROUP BY status').all();
     return Object.fromEntries(rows.map((r) => [r.status as string, Number(r.n)]));
@@ -275,6 +393,18 @@ export class Db {
     this.sqlite.prepare('DELETE FROM quarantine WHERE run_id = ?').run(runId);
   }
 
+  /** Page through quarantined records by seq so downloads stream with bounded memory. */
+  *iterateQuarantine(runId: string, pageSize = 1000): Generator<{ location: unknown; raw: unknown; issues: unknown }> {
+    const stmt = this.sqlite.prepare('SELECT seq, location_json, raw_json, issues_json FROM quarantine WHERE run_id = ? AND seq > ? ORDER BY seq LIMIT ?');
+    let after = -1;
+    for (;;) {
+      const rows = stmt.all(runId, after, pageSize);
+      if (!rows.length) return;
+      for (const r of rows) yield { location: parse(r.location_json), raw: parse(r.raw_json), issues: parse(r.issues_json) };
+      after = Number(rows.at(-1)!.seq);
+    }
+  }
+
   quarantinedRecords(runId: string, limit = 100_000) {
     return this.sqlite
       .prepare('SELECT location_json, raw_json, issues_json FROM quarantine WHERE run_id = ? ORDER BY seq LIMIT ?')
@@ -287,10 +417,10 @@ export class Db {
    * (and the import type may write) are touched, so a price update never blanks a name.
    * Update-only import types do not create products for unknown SKUs; they count them.
    */
-  promote(runId: string, partnerId: string, createMissing: boolean): { inserted: number; updated: number; unknownSkus: number } {
+  promote(runId: string, partnerId: string, createMissing: boolean): { inserted: number; updated: number; unknownSkus: number; skippedStale: number } {
     const rows = this.sqlite.prepare('SELECT product_json, present_fields_json FROM staged_products WHERE run_id = ? ORDER BY seq').all(runId);
-    const exists = this.sqlite.prepare('SELECT 1 FROM products WHERE partner_id = ? AND sku = ?');
-    const stats = { inserted: 0, updated: 0, unknownSkus: 0 };
+    const exists = this.sqlite.prepare('SELECT updated_at FROM products WHERE partner_id = ? AND sku = ?');
+    const stats = { inserted: 0, updated: 0, unknownSkus: 0, skippedStale: 0 };
     const at = now();
     this.transaction(() => {
       for (const row of rows) {
@@ -299,6 +429,13 @@ export class Db {
         const found = exists.get(partnerId, product.sku);
         if (!found && !createMissing) {
           stats.unknownSkus++;
+          continue;
+        }
+        // Re-check staleness at commit time: a held run approved days later must not overwrite
+        // data that a newer run committed in the meantime (feedback round 1, #2).
+        const currentTs = found?.updated_at as string | null | undefined;
+        if (currentTs && product.updated_at && product.updated_at < currentTs) {
+          stats.skippedStale++;
           continue;
         }
         const values = present.map((f) => (product as Record<string, unknown>)[f] as string | number | null);
@@ -360,6 +497,8 @@ function toRun(row: Record<string, unknown>): RunRow {
     result: parse(row.result_json),
     fatal: parse(row.fatal_json),
     commit: parse(row.commit_json),
+    createdBy: (row.created_by as string) ?? null,
+    attempts: Number(row.attempts ?? 0),
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
   };
