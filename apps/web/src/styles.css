@@ -74,7 +74,7 @@ code { font-size: 0.92em; background: var(--paper); padding: 0.05em 0.3em; borde
 .sidebar h2 { font-size: 1rem; font-weight: 700; }
 label { display: grid; gap: 0.3rem; font-weight: 600; font-size: 0.9rem; }
 .help { font-weight: 400; color: var(--ink-2); font-size: 0.85rem; }
-select, input[type='text'], input[type='number'], input[type='file'] {
+select, input[type='text'], input[type='password'], input[type='number'], input[type='file'] {
   font: inherit;
   font-weight: 400;
   padding: 0.45rem 0.55rem;
@@ -233,3 +233,39 @@ button.secondary { background: var(--sheet); color: var(--ink); border-color: va
 @media (prefers-reduced-motion: no-preference) {
   .limit-fill { transition: width 400ms ease-out; }
 }
+
+/* ---------- round 1: sign-in, tabs, history, suppliers ---------- */
+.masthead { align-items: center; }
+.masthead .tabs { display: flex; gap: 0.25rem; margin-left: 1rem; }
+.masthead .tabs button { background: transparent; border: 0; color: #b8c3d1; padding: 0.35rem 0.7rem; border-radius: var(--radius-s); }
+.masthead .tabs button.is-active { background: #2a3646; color: #fff; }
+.whoami { margin-left: auto; display: flex; gap: 0.9rem; align-items: baseline; color: #d6dee8; font-size: 0.9rem; }
+.link-button.on-dark { color: #9cc2ff; }
+.detail.wide { grid-column: 1 / -1; }
+@media (max-width: 860px) { .detail.wide { grid-area: detail; } .whoami { margin-left: 0; } .masthead .tabs { margin-left: 0; } }
+
+.signin { max-width: 420px; margin: 10vh auto; padding: 0 1.25rem; display: grid; gap: 1.5rem; }
+.signin h1 { font-size: 1.4rem; }
+.signin form { display: grid; gap: 0.8rem; background: var(--sheet); padding: 1.1rem; border-radius: var(--radius-m); border: 1px solid var(--rule); }
+.demo-keys { display: grid; gap: 0.5rem; }
+.demo-keys h2 { font-size: 1rem; }
+.demo-keys ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; }
+.demo-keys li { display: grid; grid-template-columns: 11rem 1fr; gap: 0.75rem; align-items: center; font-size: 0.9rem; }
+
+.hold-reasons { margin: 0; padding-left: 1.2rem; font-weight: 600; }
+.figures-note { font-size: 0.9rem; color: var(--ink-2); }
+.warn-text { color: var(--warn); font-weight: 600; }
+
+.history-log ol { list-style: none; padding: 0; margin: 0.5rem 0 0; display: grid; gap: 0.35rem; font-size: 0.9rem; }
+.history-log time { color: var(--ink-2); font-variant-numeric: tabular-nums; margin-right: 0.3rem; }
+
+.suppliers { max-width: 960px; display: grid; gap: 1rem; }
+.suppliers-head { display: flex; justify-content: space-between; align-items: end; gap: 1rem; flex-wrap: wrap; }
+.suppliers-head h2 { font-size: 1.4rem; }
+label.inline { display: flex; align-items: center; gap: 0.5rem; }
+label.inline select { width: auto; }
+table.plain { width: 100%; border-collapse: collapse; background: var(--sheet); border: 1px solid var(--rule); border-radius: var(--radius-m); }
+table.plain th, table.plain td { text-align: left; padding: 0.55rem 0.75rem; border-bottom: 1px solid var(--rule); }
+table.plain thead th { font-size: 0.82rem; color: var(--ink-2); font-weight: 600; background: #f7f9fb; }
+table.plain select { max-width: 220px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

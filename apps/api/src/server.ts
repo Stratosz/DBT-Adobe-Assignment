@@ -56,7 +56,7 @@ if (usingDemoKeys) app.log.warn('Using the public demo API keys from config/api-
 // In "npm start" / Docker the API also serves the built UI.
 const webDist = join(REPO_ROOT, 'apps', 'web', 'dist');
 if (existsSync(webDist)) {
-  await app.register(fastifyStatic, { root: webDist, wildcard: false });
+  await app.register(fastifyStatic, { root: webDist });
   app.setNotFoundHandler((req, reply) =>
     req.url.startsWith('/api') ? reply.status(404).send({ error: { code: 'NOT_FOUND', message: 'No such endpoint' } }) : reply.sendFile('index.html'),
   );
