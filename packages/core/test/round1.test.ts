@@ -60,7 +60,15 @@ describe('security: prototype pollution', () => {
   });
 
   it('does not read inherited properties as saved mappings', () => {
-    const p = proposeMapping([{ name: 'constructor', samples: ['x'] }, { name: 'sku', samples: ['A'] }], IMPORT_TYPES.full_catalog, US, {});
+    const p = proposeMapping(
+      [
+        { name: 'constructor', samples: ['x'] },
+        { name: 'sku', samples: ['A'] },
+      ],
+      IMPORT_TYPES.full_catalog,
+      US,
+      {},
+    );
     expect(p.matches.find((m) => m.sourceField === 'constructor')!.method).not.toBe('saved');
   });
 });
@@ -104,7 +112,12 @@ describe('security: size limits', () => {
 
 describe('#4 minimum count before holding', () => {
   it('commits a 3-row price fix with one typo, and says why it was not held', async () => {
-    const input = { source: bufferSource(readFileSync(join(FIXTURES, 'peak/prices_small_fix.csv'))), filename: 'prices_small_fix.csv', importType: 'price_update', locale: US };
+    const input = {
+      source: bufferSource(readFileSync(join(FIXTURES, 'peak/prices_small_fix.csv'))),
+      filename: 'prices_small_fix.csv',
+      importType: 'price_update',
+      locale: US,
+    };
     const r = await run(input);
     expect(r.result.status).toBe('COMMITTED');
     expect(r.result.counts).toMatchObject({ total: 3, quarantined: 1, accepted: 2 });
@@ -150,9 +163,20 @@ describe('catalog guards', () => {
   it('#3 the price bug fixture is held with a clear reason', async () => {
     const peak = new Map<string, CatalogEntry>();
     // seed the catalog from the Peak catalog fixture
-    const cat = await run({ source: bufferSource(readFileSync(join(FIXTURES, 'peak/catalog.json'))), filename: 'catalog.json', importType: 'full_catalog', locale: US });
+    const cat = await run({
+      source: bufferSource(readFileSync(join(FIXTURES, 'peak/catalog.json'))),
+      filename: 'catalog.json',
+      importType: 'full_catalog',
+      locale: US,
+    });
     for (const a of cat.accepted) peak.set(a.product.sku, { price: a.product.price, currency: a.product.currency, updated_at: a.product.updated_at });
-    const r = await run({ source: bufferSource(readFileSync(join(FIXTURES, 'peak/prices_bug.csv'))), filename: 'prices_bug.csv', importType: 'price_update', locale: US, catalog: (s) => peak.get(s) ?? null });
+    const r = await run({
+      source: bufferSource(readFileSync(join(FIXTURES, 'peak/prices_bug.csv'))),
+      filename: 'prices_bug.csv',
+      importType: 'price_update',
+      locale: US,
+      catalog: (s) => peak.get(s) ?? null,
+    });
     expect(r.result.status).toBe('HELD_FOR_REVIEW');
     expect(r.result.counts.flaggedForReview).toBeGreaterThanOrEqual(10);
     expect(r.result.decisionReason).toMatch(/changed by more than 50%/);
@@ -161,7 +185,12 @@ describe('catalog guards', () => {
 
 describe('truncated export fixture', () => {
   it('fails clearly before anything is processed', async () => {
-    const r = await run({ source: bufferSource(readFileSync(join(FIXTURES, 'peak/catalog_broken.json'))), filename: 'catalog_broken.json', importType: 'full_catalog', locale: US });
+    const r = await run({
+      source: bufferSource(readFileSync(join(FIXTURES, 'peak/catalog_broken.json'))),
+      filename: 'catalog_broken.json',
+      importType: 'full_catalog',
+      locale: US,
+    });
     expect(r.result.status).toBe('FAILED');
     expect(r.result.fatal).toMatchObject({ code: 'FILE_UNPARSEABLE', hint: expect.stringMatching(/resend/) });
   });

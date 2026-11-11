@@ -77,10 +77,7 @@ export interface ResolvedPolicy {
 
 export class PolicyError extends Error {}
 
-export function resolvePolicy(
-  importTypeId: string,
-  override?: { maxErrorRate?: number | null; reason?: string | null },
-): ResolvedPolicy {
+export function resolvePolicy(importTypeId: string, override?: { maxErrorRate?: number | null; reason?: string | null }): ResolvedPolicy {
   const importType = IMPORT_TYPES[importTypeId as ImportTypeId];
   if (!importType) {
     throw new PolicyError(`Unknown import type "${importTypeId}". Expected one of: ${IMPORT_TYPE_IDS.join(', ')}`);
@@ -90,9 +87,7 @@ export function resolvePolicy(
     return { importType, maxErrorRate: importType.maxErrorRate, overridden: false, overrideReason: null };
   }
   if (!Number.isFinite(value) || value < ERROR_RATE_OVERRIDE_BOUNDS.min || value > ERROR_RATE_OVERRIDE_BOUNDS.max) {
-    throw new PolicyError(
-      `Error-rate override ${value} is out of bounds [${ERROR_RATE_OVERRIDE_BOUNDS.min}, ${ERROR_RATE_OVERRIDE_BOUNDS.max}]`,
-    );
+    throw new PolicyError(`Error-rate override ${value} is out of bounds [${ERROR_RATE_OVERRIDE_BOUNDS.min}, ${ERROR_RATE_OVERRIDE_BOUNDS.max}]`);
   }
   const reason = override?.reason?.trim();
   if (!reason) {

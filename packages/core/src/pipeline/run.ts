@@ -72,7 +72,11 @@ export interface Analysis {
 
 function fatalFrom(err: unknown): FatalError {
   if (err instanceof FormatError) {
-    return { code: err.code, message: err.message, hint: err.detail && err.code !== 'FORMAT_AMBIGUOUS' ? err.detail : ISSUE_CATALOG[err.code].hint({ samples: err.detail ? [err.detail] : [], count: 1 }) };
+    return {
+      code: err.code,
+      message: err.message,
+      hint: err.detail && err.code !== 'FORMAT_AMBIGUOUS' ? err.detail : ISSUE_CATALOG[err.code].hint({ samples: err.detail ? [err.detail] : [], count: 1 }),
+    };
   }
   throw err;
 }
@@ -121,7 +125,14 @@ export async function analyzeFile(input: RunInput): Promise<Analysis> {
       if (++seen >= sampleSize) break;
     }
   } catch (err) {
-    return { ...base, format: detection.adapter.id, detectionMethod: detection.method, formatScores: detection.scores, encoding: decode.encoding, fatal: fatalFrom(err) };
+    return {
+      ...base,
+      format: detection.adapter.id,
+      detectionMethod: detection.method,
+      formatScores: detection.scores,
+      encoding: decode.encoding,
+      fatal: fatalFrom(err),
+    };
   }
   const profiles = [...fields].map(([name, samples]) => ({ name, samples }));
   return {
@@ -233,7 +244,8 @@ export async function processRecords(input: RunInput, mapping: Record<string, Ca
     }
   }
   for (const [source, target] of Object.entries(mapping)) {
-    if (!writable.has(target)) aggregator.add({ code: 'FIELD_NOT_WRITABLE', severity: 'info', field: target, sourceField: source, message: 'Ignored by import type' });
+    if (!writable.has(target))
+      aggregator.add({ code: 'FIELD_NOT_WRITABLE', severity: 'info', field: target, sourceField: source, message: 'Ignored by import type' });
   }
 
   const sourceByTarget = new Map<CanonicalFieldName, string>();
@@ -378,7 +390,9 @@ export async function processRecords(input: RunInput, mapping: Record<string, Ca
   const overCount = counts.quarantined >= importType.minQuarantinedToHold;
   const holdReasons: string[] = [];
   if (overRate && overCount) {
-    holdReasons.push(`${pct(errorRate)} of records were quarantined, above the ${pct(policy.maxErrorRate)} limit for ${importType.label.toLowerCase()} imports.`);
+    holdReasons.push(
+      `${pct(errorRate)} of records were quarantined, above the ${pct(policy.maxErrorRate)} limit for ${importType.label.toLowerCase()} imports.`,
+    );
   }
   if (counts.flaggedForReview > 0) {
     const n = counts.flaggedForReview;

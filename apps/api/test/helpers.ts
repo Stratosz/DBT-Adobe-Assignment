@@ -13,7 +13,9 @@ export function multipart(fields: Record<string, string>, file: { name: string; 
   const boundary = '----test' + Math.random().toString(16).slice(2);
   const parts: Buffer[] = [];
   for (const [k, v] of Object.entries(fields)) parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="${k}"\r\n\r\n${v}\r\n`));
-  parts.push(Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${file.name}"\r\nContent-Type: application/octet-stream\r\n\r\n`));
+  parts.push(
+    Buffer.from(`--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${file.name}"\r\nContent-Type: application/octet-stream\r\n\r\n`),
+  );
   parts.push(file.content, Buffer.from(`\r\n--${boundary}--\r\n`));
   return { payload: Buffer.concat(parts), headers: { 'content-type': `multipart/form-data; boundary=${boundary}` } };
 }

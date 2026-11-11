@@ -17,6 +17,7 @@ Feeds arrive as CSV today and as JSON/NDJSON from newer suppliers. XML and Excel
   3. the highest sniff score.
 
   If two formats score almost the same, detection refuses to guess.
+
 - Nested data is flattened to dot paths, so the mapper treats `pricing.amount` like a column name. Arrays of scalars are joined with `|`; arrays of objects keep index paths.
 - All formats are streamed: `csv-parse`, `stream-json`, and line splitting for NDJSON.
 - A file-level failure (empty, truncated JSON) throws a `FormatError` and fails the run. A record-level failure (one bad CSV row or NDJSON line) becomes a quarantined record.

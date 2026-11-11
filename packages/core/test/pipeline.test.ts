@@ -58,7 +58,12 @@ describe('demo story: Nordwind (German ERP CSV)', () => {
     const p = r.analysis.proposal!;
     expect(p.needsConfirmation).toBe(true);
     const pending = p.matches.filter((m) => m.status === 'needs_confirmation').map((m) => [m.sourceField, m.target]);
-    expect(pending).toEqual(expect.arrayContaining([['Artikel-Nr.', 'sku'], ['VK-Preis', 'price']]));
+    expect(pending).toEqual(
+      expect.arrayContaining([
+        ['Artikel-Nr.', 'sku'],
+        ['VK-Preis', 'price'],
+      ]),
+    );
   });
 
   it('week 2: once confirmed, one bad price is quarantined and the rest commits', async () => {
@@ -78,10 +83,7 @@ describe('demo story: Nordwind (German ERP CSV)', () => {
   });
 
   it('week 3: an override with a reason can let the run through', async () => {
-    const r = await run(
-      { ...fixture('nordwind/week3_catalog.csv'), policyOverride: { maxErrorRate: 0.5, reason: 'x' } },
-      { acceptSuggestions: true },
-    );
+    const r = await run({ ...fixture('nordwind/week3_catalog.csv'), policyOverride: { maxErrorRate: 0.5, reason: 'x' } }, { acceptSuggestions: true });
     expect(r.result.status).toBe('HELD_FOR_REVIEW'); // 67% is above even the maximum override of 50%
     expect(r.result.policy).toMatchObject({ overridden: true, overrideReason: 'x' });
   });
@@ -132,7 +134,12 @@ describe('format independence', () => {
 
 describe('fatal file problems', () => {
   it('fails clearly on a truncated JSON document', async () => {
-    const r = await run({ source: bufferSource(Buffer.from('{"products":[{"sku":"A","price":1},{"sku":"B"')), filename: 'x.json', importType: 'price_update', locale: PEAK });
+    const r = await run({
+      source: bufferSource(Buffer.from('{"products":[{"sku":"A","price":1},{"sku":"B"')),
+      filename: 'x.json',
+      importType: 'price_update',
+      locale: PEAK,
+    });
     expect(r.result.status).toBe('FAILED');
     expect(r.result.fatal).toMatchObject({ code: 'FILE_UNPARSEABLE' });
     expect(r.result.fatal!.hint).toMatch(/resend/);
@@ -149,7 +156,9 @@ describe('quarantine export', () => {
     const r = await run(fixture('nordwind/week2_catalog.csv'), { acceptSuggestions: true });
     const csv = quarantineToCsv(r.quarantined);
     const [header, row] = csv.replace('﻿', '').split('\n');
-    expect(header).toBe('_source_location,_error_codes,_error_messages,Artikel-Nr.,Bezeichnung,Marke,Kategorie,VK-Preis,Währung,Lagerbestand,EAN,Farbe,Geändert am');
+    expect(header).toBe(
+      '_source_location,_error_codes,_error_messages,Artikel-Nr.,Bezeichnung,Marke,Kategorie,VK-Preis,Währung,Lagerbestand,EAN,Farbe,Geändert am',
+    );
     expect(row).toContain('PRICE_UNPARSEABLE');
     expect(row).toContain('auf Anfrage');
   });

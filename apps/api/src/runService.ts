@@ -170,16 +170,45 @@ export class RunService {
     const previous = this.db.findCommittedRunByHash(partner.id, req.importType, fileHash);
     if (previous && !req.force) {
       rmSync(tmp, { force: true });
-      throw new AppError(409, 'DUPLICATE_FILE', `This exact file was already imported in run ${previous.id}`, 'Re-upload with force=true to import it again.', { runId: previous.id });
+      throw new AppError(409, 'DUPLICATE_FILE', `This exact file was already imported in run ${previous.id}`, 'Re-upload with force=true to import it again.', {
+        runId: previous.id,
+      });
     }
 
     const runId = newRunId();
     renameSync(tmp, this.filePath(runId));
-    const storedPolicy = { importType: policy.importType.id, maxErrorRate: policy.maxErrorRate, overridden: policy.overridden, overrideReason: policy.overrideReason };
-    this.db.createRun({ id: runId, partnerId: partner.id, importType: req.importType, filename: req.filename, sizeBytes: size, fileHash, requestedFormat: req.format ?? null, policy: storedPolicy, createdBy: req.actor.id });
-    this.db.audit(req.actor, 'run.uploaded', { runId, partnerId: partner.id, details: { filename: req.filename, sizeBytes: size, importType: req.importType, forced: !!req.force && !!previous } });
-    if (policy.overridden) this.db.audit(req.actor, 'run.limit_overridden', { runId, partnerId: partner.id, details: { maxErrorRate: policy.maxErrorRate, reason: policy.overrideReason } });
-    this.log.info({ event: 'run.received', runId, partnerId: partner.id, actor: req.actor.id, filename: req.filename, sizeBytes: size, fileHash: fileHash.slice(0, 12) }, 'run received');
+    const storedPolicy = {
+      importType: policy.importType.id,
+      maxErrorRate: policy.maxErrorRate,
+      overridden: policy.overridden,
+      overrideReason: policy.overrideReason,
+    };
+    this.db.createRun({
+      id: runId,
+      partnerId: partner.id,
+      importType: req.importType,
+      filename: req.filename,
+      sizeBytes: size,
+      fileHash,
+      requestedFormat: req.format ?? null,
+      policy: storedPolicy,
+      createdBy: req.actor.id,
+    });
+    this.db.audit(req.actor, 'run.uploaded', {
+      runId,
+      partnerId: partner.id,
+      details: { filename: req.filename, sizeBytes: size, importType: req.importType, forced: !!req.force && !!previous },
+    });
+    if (policy.overridden)
+      this.db.audit(req.actor, 'run.limit_overridden', {
+        runId,
+        partnerId: partner.id,
+        details: { maxErrorRate: policy.maxErrorRate, reason: policy.overrideReason },
+      });
+    this.log.info(
+      { event: 'run.received', runId, partnerId: partner.id, actor: req.actor.id, filename: req.filename, sizeBytes: size, fileHash: fileHash.slice(0, 12) },
+      'run received',
+    );
     this.kick();
     return this.run(runId);
   }
@@ -188,11 +217,13 @@ export class RunService {
   confirmMapping(runId: string, decisions: SavedMapping, remember: boolean, actor: Actor): Promise<RunRow> {
     return this.exclusive(async () => {
       const run = this.run(runId);
-      if (run.status !== 'AWAITING_MAPPING') throw new AppError(409, 'INVALID_STATE', `Run is ${run.status}; mapping can only be confirmed while AWAITING_MAPPING`);
+      if (run.status !== 'AWAITING_MAPPING')
+        throw new AppError(409, 'INVALID_STATE', `Run is ${run.status}; mapping can only be confirmed while AWAITING_MAPPING`);
       const analysis = run.analysis as Analysis;
       const importType = IMPORT_TYPES[run.importType as ImportTypeId];
       const { mapping, problems } = applyDecisions(analysis.proposal!, decisions, importType);
-      if (problems.length) throw new AppError(422, 'MAPPING_INCOMPLETE', 'The mapping cannot be used yet', 'Resolve the listed problems and submit again.', { problems });
+      if (problems.length)
+        throw new AppError(422, 'MAPPING_INCOMPLETE', 'The mapping cannot be used yet', 'Resolve the listed problems and submit again.', { problems });
       if (remember) this.db.saveMappingDecisions(run.partnerId, runId, decisions, actor.id);
       this.db.updateRun(runId, { status: 'QUEUED', statusReason: 'Mapping confirmed; waiting for the worker', mapping });
       this.db.audit(actor, 'run.mapping_confirmed', { runId, partnerId: run.partnerId, details: { decisions, remembered: remember } });
@@ -222,7 +253,8 @@ export class RunService {
   reject(runId: string, reason: string, actor: Actor): Promise<RunRow> {
     return this.exclusive(async () => {
       const run = this.run(runId);
-      if (run.status !== 'HELD_FOR_REVIEW' && run.status !== 'AWAITING_MAPPING') throw new AppError(409, 'INVALID_STATE', `Run is ${run.status}; only held or waiting runs can be rejected`);
+      if (run.status !== 'HELD_FOR_REVIEW' && run.status !== 'AWAITING_MAPPING')
+        throw new AppError(409, 'INVALID_STATE', `Run is ${run.status}; only held or waiting runs can be rejected`);
       this.db.clearRunData(runId);
       this.db.updateRun(runId, { status: 'REJECTED', statusReason: `Rejected by ${actor.name}: ${reason?.trim() || 'no reason given'}` });
       this.db.audit(actor, 'run.rejected', { runId, partnerId: run.partnerId, details: { reason: reason?.trim() || null } });
@@ -262,7 +294,10 @@ export class RunService {
     for (const run of stuck) {
       if (run.attempts >= MAX_ATTEMPTS) {
         this.db.clearRunData(run.id);
-        this.db.updateRun(run.id, { status: 'FAILED', statusReason: `Gave up after ${run.attempts} attempts (the service stopped while processing it each time)` });
+        this.db.updateRun(run.id, {
+          status: 'FAILED',
+          statusReason: `Gave up after ${run.attempts} attempts (the service stopped while processing it each time)`,
+        });
         this.log.error({ event: 'run.gave_up', runId: run.id, attempts: run.attempts }, 'run failed repeatedly; giving up');
         continue;
       }
@@ -321,7 +356,18 @@ export class RunService {
         const drift = this.detectDrift(run, analysis);
         this.db.updateRun(run.id, { format: analysis.format, analysis: storedAnalysis(analysis), drift });
         if (drift?.changed) this.metrics.drift.inc({ partner: partner.id, format: analysis.format ?? 'unknown' });
-        log.info({ event: 'run.analyzed', format: analysis.format, detection: analysis.detectionMethod, encoding: analysis.encoding, fields: analysis.fields.length, needsConfirmation: analysis.proposal?.needsConfirmation, drift }, 'run analyzed');
+        log.info(
+          {
+            event: 'run.analyzed',
+            format: analysis.format,
+            detection: analysis.detectionMethod,
+            encoding: analysis.encoding,
+            fields: analysis.fields.length,
+            needsConfirmation: analysis.proposal?.needsConfirmation,
+            drift,
+          },
+          'run analyzed',
+        );
         if (analysis.fatal) {
           this.db.updateRun(run.id, { status: 'FAILED', statusReason: analysis.fatal.message, fatal: analysis.fatal });
           this.finishMetrics(partner.id, run.importType, analysis.format ?? 'unknown', 'FAILED', started);
@@ -348,7 +394,10 @@ export class RunService {
     } catch (err) {
       log.error({ event: 'run.crashed', err }, 'run crashed');
       this.db.clearRunData(run.id);
-      this.db.updateRun(run.id, { status: 'FAILED', statusReason: `Internal error while processing (${(err as Error).message}). Quote the run id to support.` });
+      this.db.updateRun(run.id, {
+        status: 'FAILED',
+        statusReason: `Internal error while processing (${(err as Error).message}). Quote the run id to support.`,
+      });
       this.finishMetrics(run.partnerId, run.importType, run.format ?? 'unknown', 'FAILED', started);
     }
   }
@@ -357,11 +406,21 @@ export class RunService {
     if (!analysis.format || !analysis.proposal) return null;
     const prev = this.db.previousFields(run.partnerId, analysis.format, run.id);
     if (!prev) return { changed: false, firstRun: true };
-    const { added, removed } = diffFields(prev.fields, analysis.fields.map((f) => f.name));
+    const { added, removed } = diffFields(
+      prev.fields,
+      analysis.fields.map((f) => f.name),
+    );
     return { changed: added.length + removed.length > 0, firstRun: false, comparedTo: prev.runId, added, removed };
   }
 
-  private async process(run: RunRow, partner: PartnerRow, mapping: Record<string, CanonicalFieldName>, analysis: Analysis, started: number, log: FastifyBaseLogger): Promise<void> {
+  private async process(
+    run: RunRow,
+    partner: PartnerRow,
+    mapping: Record<string, CanonicalFieldName>,
+    analysis: Analysis,
+    started: number,
+    log: FastifyBaseLogger,
+  ): Promise<void> {
     const writer = this.db.stageWriter(run.id);
     this.db.clearRunData(run.id);
     const result: RunResult = await this.db.transactionAsync(() =>

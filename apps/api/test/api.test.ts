@@ -17,7 +17,11 @@ describe('ingestion API: the Nordwind story end to end', () => {
 
     const w2 = await h.ingest('uploader', 'nordwind/week2_catalog.csv', { partnerId: 'nordwind', importType: 'full_catalog' });
     expect(w2.body.status).toBe('AWAITING_MAPPING');
-    expect(w2.body.drift).toMatchObject({ changed: true, added: expect.arrayContaining(['Artikel-Nr.', 'Farbe']), removed: expect.arrayContaining(['Artikelnummer']) });
+    expect(w2.body.drift).toMatchObject({
+      changed: true,
+      added: expect.arrayContaining(['Artikel-Nr.', 'Farbe']),
+      removed: expect.arrayContaining(['Artikelnummer']),
+    });
 
     const bad = await h.req('reviewer', 'POST', `/api/runs/${w2.body.id}/mapping`, { decisions: { 'Artikel-Nr.': 'sku' } });
     expect(bad.status).toBe(422);
@@ -31,7 +35,10 @@ describe('ingestion API: the Nordwind story end to end', () => {
 
     const mappings = (await h.req('uploader', 'GET', '/api/partners/nordwind/mappings')).body;
     expect(mappings.map((m: { sourceField: string; target: string | null; decidedBy: string }) => [m.sourceField, m.target, m.decidedBy])).toEqual(
-      expect.arrayContaining([['VK-Preis', 'price', 'mara'], ['Farbe', null, 'mara']]),
+      expect.arrayContaining([
+        ['VK-Preis', 'price', 'mara'],
+        ['Farbe', null, 'mara'],
+      ]),
     );
 
     // Same layout as week 2: the saved mapping applies, no question asked; the data is broken so it is held.
@@ -46,7 +53,10 @@ describe('ingestion API: the Nordwind story end to end', () => {
     const approved = await h.req('reviewer', 'POST', `/api/runs/${w3.body.id}/approve`, { reason: 'Partner confirmed only 10 SKUs changed' });
     // 10 rows still had prices + 1 duplicate row of one of them (last one wins)
     expect(approved.body).toMatchObject({ status: 'COMMITTED', commit: { updated: 11 } });
-    expect(approved.body.audit.map((a: { action: string; actorId: string }) => `${a.action}:${a.actorId}`)).toEqual(['run.uploaded:andrei', 'run.approved:mara']);
+    expect(approved.body.audit.map((a: { action: string; actorId: string }) => `${a.action}:${a.actorId}`)).toEqual([
+      'run.uploaded:andrei',
+      'run.approved:mara',
+    ]);
   });
 
   it('serves the quarantine file in the source format family', async () => {
@@ -109,7 +119,9 @@ describe('feedback round 1 through the API', () => {
 
   it('#6 an admin can correct or forget a saved mapping, and it is audited', async () => {
     const w1 = await h.ingest('uploader', 'nordwind/week2_catalog.csv', { partnerId: 'nordwind' });
-    await h.req('reviewer', 'POST', `/api/runs/${w1.body.id}/mapping`, { decisions: { 'Artikel-Nr.': 'sku', 'VK-Preis': 'price', Lagerbestand: 'quantity', Farbe: 'availability' } });
+    await h.req('reviewer', 'POST', `/api/runs/${w1.body.id}/mapping`, {
+      decisions: { 'Artikel-Nr.': 'sku', 'VK-Preis': 'price', Lagerbestand: 'quantity', Farbe: 'availability' },
+    });
     await h.settle(w1.body.id);
 
     expect((await h.req('reviewer', 'PUT', '/api/partners/nordwind/mappings/Farbe', { target: null })).status).toBe(403);

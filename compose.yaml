@@ -1,0 +1,22 @@
+# docker compose up --build   ->  http://localhost:3000
+services:
+  feed-intake:
+    build: .
+    ports:
+      - '3000:3000'
+    environment:
+      # Demo deployment: the public demo keys in config/api-keys.demo.json are allowed.
+      # For anything real, mount a key file and set API_KEYS_FILE instead.
+      ALLOW_DEMO_KEYS: 'true'
+      LOG_LEVEL: info
+    volumes:
+      - feed-data:/data
+    stop_grace_period: 30s
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  feed-data:

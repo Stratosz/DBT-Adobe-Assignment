@@ -19,14 +19,14 @@ Today two people in catalog operations open every file and fix it in Excel befor
 
 ## What this solution changes
 
-| Today | With feed intake |
-|---|---|
-| Ops fix every file by hand | Clean files import without anyone touching them. People only see what needs a decision. |
+| Today                                              | With feed intake                                                                                             |
+| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Ops fix every file by hand                         | Clean files import without anyone touching them. People only see what needs a decision.                      |
 | A renamed column breaks the import or maps wrongly | The tool suggests the match with a reason. Someone confirms it once, and it is remembered for that supplier. |
-| A broken export partially overwrites the catalog | The file is held when too many rows are bad. Nothing is applied until someone approves. |
-| "The file has errors," sent back to the supplier | The supplier gets back their own rows, each with the column, the bad value and how to fix it. |
-| New supplier format = IT project | One supplier config entry, plus at most one format adapter. Mapping is learned from the first file. |
-| No visibility | A run history, plus metrics on held and failed runs, data quality per supplier, and schema drift. |
+| A broken export partially overwrites the catalog   | The file is held when too many rows are bad. Nothing is applied until someone approves.                      |
+| "The file has errors," sent back to the supplier   | The supplier gets back their own rows, each with the column, the bad value and how to fix it.                |
+| New supplier format = IT project                   | One supplier config entry, plus at most one format adapter. Mapping is learned from the first file.          |
+| No visibility                                      | A run history, plus metrics on held and failed runs, data quality per supplier, and schema drift.            |
 
 ## Value, in the terms the customer would measure
 

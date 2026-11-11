@@ -67,7 +67,7 @@ export function detectRecordPath(head: string): string | null {
       lastKey = null;
       continue;
     }
-    if (ch === ',' ) lastKey = null;
+    if (ch === ',') lastKey = null;
     i++;
   }
   return emptyArrayFallback;
@@ -129,7 +129,12 @@ export const jsonAdapter: FormatAdapter = {
     }
 
     // stream.pipeline (not .pipe) so a parse error anywhere surfaces on the iterator below.
-    const stages = [Readable.from(replay()), parserStream(), ...(recordPath ? [pick.asStream({ filter: recordPath, once: true })] : []), streamArray.asStream()];
+    const stages = [
+      Readable.from(replay()),
+      parserStream(),
+      ...(recordPath ? [pick.asStream({ filter: recordPath, once: true })] : []),
+      streamArray.asStream(),
+    ];
     const items = (pipeline as unknown as (...s: unknown[]) => NodeJS.ReadableStream)(...stages, () => {});
 
     const pointerBase = recordPath ? `/${recordPath.replaceAll('.', '/')}` : '';
@@ -159,9 +164,7 @@ export const jsonAdapter: FormatAdapter = {
       // half-applying a full catalog is worse than not applying it.
       throw new FormatError(
         'FILE_UNPARSEABLE',
-        count
-          ? `JSON is malformed after ${count} records: ${(err as Error).message}`
-          : `JSON is malformed: ${(err as Error).message}`,
+        count ? `JSON is malformed after ${count} records: ${(err as Error).message}` : `JSON is malformed: ${(err as Error).message}`,
         'The export may have been cut off. Ask the partner to resend the complete file.',
       );
     }

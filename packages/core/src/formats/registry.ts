@@ -16,7 +16,12 @@ export function registerAdapter(adapter: FormatAdapter): void {
 export function getAdapter(id: string): FormatAdapter {
   const adapter = adapters.get(id);
   if (!adapter) {
-    throw new FormatError('FORMAT_UNDETECTED', `Unknown format "${id}". Supported: ${listAdapters().map((a) => a.id).join(', ')}`);
+    throw new FormatError(
+      'FORMAT_UNDETECTED',
+      `Unknown format "${id}". Supported: ${listAdapters()
+        .map((a) => a.id)
+        .join(', ')}`,
+    );
   }
   return adapter;
 }

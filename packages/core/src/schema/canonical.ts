@@ -7,15 +7,7 @@ import { z } from 'zod';
  * mapper's exact-alias step and the fuzzy similarity step. Adding an alias here is the
  * cheapest way to teach the system about a new partner's naming.
  */
-export type FieldType =
-  | 'string'
-  | 'decimal'
-  | 'integer'
-  | 'currency'
-  | 'gtin'
-  | 'availability'
-  | 'url'
-  | 'datetime';
+export type FieldType = 'string' | 'decimal' | 'integer' | 'currency' | 'gtin' | 'availability' | 'url' | 'datetime';
 
 export interface CanonicalField {
   name: CanonicalFieldName;
@@ -45,7 +37,19 @@ export const CANONICAL_FIELDS: Record<CanonicalFieldName, CanonicalField> = {
     name: 'sku',
     type: 'string',
     description: 'Partner stock keeping unit; unique per partner',
-    aliases: ['sku', 'product_id', 'item_code', 'item_id', 'article_number', 'artikelnummer', 'product_code', 'part_number', 'style_code', 'item_number', 'sku_code'],
+    aliases: [
+      'sku',
+      'product_id',
+      'item_code',
+      'item_id',
+      'article_number',
+      'artikelnummer',
+      'product_code',
+      'part_number',
+      'style_code',
+      'item_number',
+      'sku_code',
+    ],
   },
   name: {
     name: 'name',
@@ -105,7 +109,19 @@ export const CANONICAL_FIELDS: Record<CanonicalFieldName, CanonicalField> = {
     name: 'updated_at',
     type: 'datetime',
     description: 'Last modification time at the source (ISO 8601, UTC)',
-    aliases: ['updated_at', 'last_modified', 'modified', 'updated', 'last_updated', 'modified_at', 'timestamp', 'changed_at', 'geaendert_am', 'aktualisiert', 'letzte_aenderung'],
+    aliases: [
+      'updated_at',
+      'last_modified',
+      'modified',
+      'updated',
+      'last_updated',
+      'modified_at',
+      'timestamp',
+      'changed_at',
+      'geaendert_am',
+      'aktualisiert',
+      'letzte_aenderung',
+    ],
   },
 };
 
@@ -122,10 +138,16 @@ export const NormalizedProductSchema = z.object({
   sku: z.string().min(1).max(128),
   name: z.string().min(1).nullable(),
   price: z.number().nonnegative().finite().nullable(),
-  currency: z.string().regex(/^[A-Z]{3}$/).nullable(),
+  currency: z
+    .string()
+    .regex(/^[A-Z]{3}$/)
+    .nullable(),
   quantity: z.number().int().nonnegative().nullable(),
   availability: z.enum(AVAILABILITY_VALUES).nullable(),
-  gtin: z.string().regex(/^\d{8}$|^\d{12,14}$/).nullable(),
+  gtin: z
+    .string()
+    .regex(/^\d{8}$|^\d{12,14}$/)
+    .nullable(),
   brand: z.string().nullable(),
   category: z.string().nullable(),
   url: z.string().url().nullable(),

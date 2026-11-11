@@ -123,7 +123,11 @@ export async function buildApp(opts: AppOptions) {
 
   await app.register(swagger, {
     openapi: {
-      info: { title: 'Supplier feed intake API', version: '1.1.0', description: 'Upload partner feeds, confirm mappings, review held runs. All /api routes need `Authorization: Bearer <api key>`.' },
+      info: {
+        title: 'Supplier feed intake API',
+        version: '1.1.0',
+        description: 'Upload partner feeds, confirm mappings, review held runs. All /api routes need `Authorization: Bearer <api key>`.',
+      },
       components: { securitySchemes: { apiKey: { type: 'http', scheme: 'bearer' } } },
       security: [{ apiKey: [] }],
     },
@@ -197,7 +201,14 @@ export async function buildApp(opts: AppOptions) {
 
   app.get<{ Params: { id: string } }>(
     '/api/partners/:id/mappings',
-    { ...uploader, schema: { tags: ['suppliers'], summary: 'Saved column mappings for a supplier', params: { type: 'object', properties: { id: PARTNER_ID }, required: ['id'] } } },
+    {
+      ...uploader,
+      schema: {
+        tags: ['suppliers'],
+        summary: 'Saved column mappings for a supplier',
+        params: { type: 'object', properties: { id: PARTNER_ID }, required: ['id'] },
+      },
+    },
     async (req) => db.listMappings(req.params.id),
   );
 
@@ -208,7 +219,11 @@ export async function buildApp(opts: AppOptions) {
       schema: {
         tags: ['suppliers'],
         summary: 'Change a saved mapping (admin). target=null means "never import this column".',
-        params: { type: 'object', properties: { id: PARTNER_ID, sourceField: { type: 'string', minLength: 1, maxLength: 200 } }, required: ['id', 'sourceField'] },
+        params: {
+          type: 'object',
+          properties: { id: PARTNER_ID, sourceField: { type: 'string', minLength: 1, maxLength: 200 } },
+          required: ['id', 'sourceField'],
+        },
         body: { type: 'object', properties: { target: TARGET }, required: ['target'], additionalProperties: false },
         response: errors,
       },
@@ -223,7 +238,11 @@ export async function buildApp(opts: AppOptions) {
       schema: {
         tags: ['suppliers'],
         summary: 'Forget a saved mapping (admin); the column will be suggested again on the next file',
-        params: { type: 'object', properties: { id: PARTNER_ID, sourceField: { type: 'string', minLength: 1, maxLength: 200 } }, required: ['id', 'sourceField'] },
+        params: {
+          type: 'object',
+          properties: { id: PARTNER_ID, sourceField: { type: 'string', minLength: 1, maxLength: 200 } },
+          required: ['id', 'sourceField'],
+        },
         response: errors,
       },
     },
@@ -311,8 +330,10 @@ export async function buildApp(opts: AppOptions) {
     return run;
   };
 
-  app.get<{ Params: { id: string } }>('/api/runs/:id', { ...uploader, schema: { tags: ['runs'], summary: 'Run detail, including mapping proposal, result and audit trail', params: runParams } }, async (req) =>
-    runView(getRun(req.params.id), db),
+  app.get<{ Params: { id: string } }>(
+    '/api/runs/:id',
+    { ...uploader, schema: { tags: ['runs'], summary: 'Run detail, including mapping proposal, result and audit trail', params: runParams } },
+    async (req) => runView(getRun(req.params.id), db),
   );
 
   app.post<{ Params: { id: string }; Body: { decisions: Record<string, CanonicalFieldName | null>; remember?: boolean } }>(
@@ -345,7 +366,16 @@ export async function buildApp(opts: AppOptions) {
 
   app.post<{ Params: { id: string }; Body: { reason?: string } }>(
     '/api/runs/:id/approve',
-    { ...reviewer, schema: { tags: ['runs'], summary: 'Approve a held run; applies its accepted rows (reviewer, not the uploader)', params: runParams, body: reasonBody, response: errors } },
+    {
+      ...reviewer,
+      schema: {
+        tags: ['runs'],
+        summary: 'Approve a held run; applies its accepted rows (reviewer, not the uploader)',
+        params: runParams,
+        body: reasonBody,
+        response: errors,
+      },
+    },
     async (req) => runView(await runs.approve(req.params.id, req.body?.reason ?? '', actor(req)), db),
   );
 
@@ -383,7 +413,10 @@ export async function buildApp(opts: AppOptions) {
       schema: {
         tags: ['audit'],
         summary: 'Audit log: who did what (reviewer)',
-        querystring: { type: 'object', properties: { runId: RUN_ID, partnerId: PARTNER_ID, limit: { type: 'integer', minimum: 1, maximum: 500, default: 100 } } },
+        querystring: {
+          type: 'object',
+          properties: { runId: RUN_ID, partnerId: PARTNER_ID, limit: { type: 'integer', minimum: 1, maximum: 500, default: 100 } },
+        },
       },
     },
     async (req) => db.listAudit({ runId: req.query.runId, partnerId: req.query.partnerId, limit: req.query.limit ?? 100 }),
@@ -406,9 +439,14 @@ function* quarantineCsvStream(db: Db, runId: string): Generator<string> {
   const seen = new Set(columns);
   for (const r of db.iterateQuarantine(runId)) {
     const raw = r.raw !== null && typeof r.raw === 'object' ? flatten(r.raw) : { _raw: r.raw };
-    for (const k of Object.keys(raw)) if (!seen.has(k)) seen.add(k), columns.push(k);
+    for (const k of Object.keys(raw)) {
+      if (!seen.has(k)) {
+        seen.add(k);
+        columns.push(k);
+      }
+    }
   }
-  yield `﻿${columns.map(csvCell).join(',')}\n`;
+  yield `\uFEFF${columns.map(csvCell).join(',')}\n`;
   for (const r of db.iterateQuarantine(runId)) {
     const loc = r.location as { line?: number; pointer?: string };
     const issues = r.issues as Issue[];
@@ -427,7 +465,11 @@ function* quarantineJsonStream(db: Db, runId: string): Generator<string> {
   let first = true;
   for (const r of db.iterateQuarantine(runId)) {
     const issues = r.issues as Issue[];
-    const item = { _errors: issues.map((i) => ({ code: i.code, field: i.sourceField ?? i.field ?? null, message: i.message })), _source_location: r.location, record: r.raw };
+    const item = {
+      _errors: issues.map((i) => ({ code: i.code, field: i.sourceField ?? i.field ?? null, message: i.message })),
+      _source_location: r.location,
+      record: r.raw,
+    };
     yield `${first ? '' : ','}\n${JSON.stringify(item)}`;
     first = false;
   }

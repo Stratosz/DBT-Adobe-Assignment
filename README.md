@@ -40,15 +40,15 @@ State lives in `./data` (SQLite database and stored uploads). Delete the folder 
 
 Use the UI, or the curl lines below (`-F` posts a multipart form).
 
-| # | File | Expected result | What it shows |
-|---|------|-----------------|---------------|
-| 1 | `fixtures/nordwind/week1_catalog.csv` | **Imported**, 30 new products | A German ERP export (`;` separators, decimal commas, Windows-1252 encoding). Every column is matched through known aliases. |
-| 2 | `fixtures/nordwind/week2_catalog.csv` | **Needs mapping** | The supplier's ERP upgrade renamed columns (`Artikel-Nr.`, `VK-Preis`, `Lagerbestand`) and added `Farbe`. The UI shows the column drift and asks only about the three uncertain columns. |
-| 2b | Confirm the mapping | **Imported**, 29 updated, 1 set aside | Line 9 has the price "auf Anfrage". The confirmed mapping is saved for this supplier. |
-| 3 | `fixtures/nordwind/week3_catalog.csv` | **Held for review** | Same layout, so no questions this time. But the export lost most prices: 65% of rows are bad against a 5% limit, so nothing is applied. You can download the set-aside rows, approve the good rows with a reason, or reject the file. |
-| 4 | `fixtures/peak/catalog.json` (supplier: Peak) | **Needs mapping**, then **Imported** | Nested JSON from an API. `pricing.amount`, `inventory.onHand` and `identifiers.upc` are matched automatically. US dates like `03/04/2026` are read using the supplier's locale and flagged. A bad UPC drops only that field; a "TBD" price sets that row aside. |
-| 5 | `fixtures/peak/inventory.ndjson` (type: inventory update) | **Imported**, 2 set aside, 23 unknown SKUs skipped | One corrupt line and one negative stock value are set aside. Inventory updates never create products. |
-| 6 | Upload week 1 again | **409 Duplicate file** | Idempotency by content hash. The UI offers "Import it again anyway". |
+| #   | File                                                      | Expected result                                    | What it shows                                                                                                                                                                                                                                                   |
+| --- | --------------------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | `fixtures/nordwind/week1_catalog.csv`                     | **Imported**, 30 new products                      | A German ERP export (`;` separators, decimal commas, Windows-1252 encoding). Every column is matched through known aliases.                                                                                                                                     |
+| 2   | `fixtures/nordwind/week2_catalog.csv`                     | **Needs mapping**                                  | The supplier's ERP upgrade renamed columns (`Artikel-Nr.`, `VK-Preis`, `Lagerbestand`) and added `Farbe`. The UI shows the column drift and asks only about the three uncertain columns.                                                                        |
+| 2b  | Confirm the mapping                                       | **Imported**, 29 updated, 1 set aside              | Line 9 has the price "auf Anfrage". The confirmed mapping is saved for this supplier.                                                                                                                                                                           |
+| 3   | `fixtures/nordwind/week3_catalog.csv`                     | **Held for review**                                | Same layout, so no questions this time. But the export lost most prices: 65% of rows are bad against a 5% limit, so nothing is applied. You can download the set-aside rows, approve the good rows with a reason, or reject the file.                           |
+| 4   | `fixtures/peak/catalog.json` (supplier: Peak)             | **Needs mapping**, then **Imported**               | Nested JSON from an API. `pricing.amount`, `inventory.onHand` and `identifiers.upc` are matched automatically. US dates like `03/04/2026` are read using the supplier's locale and flagged. A bad UPC drops only that field; a "TBD" price sets that row aside. |
+| 5   | `fixtures/peak/inventory.ndjson` (type: inventory update) | **Imported**, 2 set aside, 23 unknown SKUs skipped | One corrupt line and one negative stock value are set aside. Inventory updates never create products.                                                                                                                                                           |
+| 6   | Upload week 1 again                                       | **409 Duplicate file**                             | Idempotency by content hash. The UI offers "Import it again anyway".                                                                                                                                                                                            |
 
 ```bash
 curl -F partnerId=nordwind -F importType=full_catalog -F file=@fixtures/nordwind/week2_catalog.csv localhost:3000/api/runs
@@ -132,16 +132,16 @@ The pipeline runs in two phases:
 
 Longer write-ups are in [docs/adr](docs/adr).
 
-| Decision | Why | Cost |
-|---|---|---|
+| Decision                                                                                                                                                                                                                                                                                                                                                                               | Why                                                                                                                                                          | Cost                                                                                                                                 |
+| -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
 | **Fuzzy mapping with confidence bands** ([ADR 1](docs/adr/0001-fuzzy-mapping-with-confidence-bands.md)): ≥0.90 applied automatically, 0.65–0.90 a person confirms, <0.65 not imported. A fuzzy name match is capped at 0.88 and needs value evidence to be applied automatically. Required fields are never applied automatically from a fuzzy match. Conflicts always go to a person. | Renamed columns are the most common kind of drift. Asking once and remembering the answer is cheap; silently mapping "Sale price" onto "price" is expensive. | The first file after a supplier changes its export needs a person. The thresholds are tuned on the fixtures, not on production data. |
-| **Set rows aside, plus a per-file limit by import type** ([ADR 2](docs/adr/0002-quarantine-and-thresholds.md)): `full_catalog` 5%, `price_update` 2%, `inventory_update` 10%. The limit can be changed per upload within 0–50%, with a stored reason. | Good rows should not wait for bad ones, but a mostly broken file usually means a broken export, and half-applying it damages the catalog. | Approval is a manual step. A small file hits the limit with very few bad rows (1 bad row in 20 = 5%). |
-| **Staging before commit** | "Held" has to mean that nothing was applied. Approving later does not re-run the file. | Extra write per row. |
-| **Field-level writes** | A price update must not blank out names. Update-only import types never create products. | Promotion builds the UPDATE per row. |
-| **Format adapters behind one interface** ([ADR 3](docs/adr/0003-format-adapters.md)) | New formats should not touch the mapper or validator. A shared contract test suite runs against every adapter. | Flattening nested JSON loses array semantics beyond "join scalars with `|`". |
-| **Truncated JSON fails the run; a corrupt CSV row or NDJSON line only sets that record aside** | You can't know what a cut-off document is missing. A line-based format isolates the damage. | A partner with a flaky export has to resend the whole JSON file. |
-| **SQLite (`node:sqlite`) and synchronous processing** ([ADR 4](docs/adr/0004-sqlite-and-synchronous-processing.md)) | Zero setup for reviewers, transactional, and the schema maps onto Postgres. | One writer: runs are processed one after another, inside the request. |
-| **No LLM in the pipeline** | Mapping and normalization are deterministic and testable, and every decision has a stated reason. | Unknown vocabularies need aliases added by hand. See "next" below. |
+| **Set rows aside, plus a per-file limit by import type** ([ADR 2](docs/adr/0002-quarantine-and-thresholds.md)): `full_catalog` 5%, `price_update` 2%, `inventory_update` 10%. The limit can be changed per upload within 0–50%, with a stored reason.                                                                                                                                  | Good rows should not wait for bad ones, but a mostly broken file usually means a broken export, and half-applying it damages the catalog.                    | Approval is a manual step. A small file hits the limit with very few bad rows (1 bad row in 20 = 5%).                                |
+| **Staging before commit**                                                                                                                                                                                                                                                                                                                                                              | "Held" has to mean that nothing was applied. Approving later does not re-run the file.                                                                       | Extra write per row.                                                                                                                 |
+| **Field-level writes**                                                                                                                                                                                                                                                                                                                                                                 | A price update must not blank out names. Update-only import types never create products.                                                                     | Promotion builds the UPDATE per row.                                                                                                 |
+| **Format adapters behind one interface** ([ADR 3](docs/adr/0003-format-adapters.md))                                                                                                                                                                                                                                                                                                   | New formats should not touch the mapper or validator. A shared contract test suite runs against every adapter.                                               | Flattening nested JSON loses array semantics beyond "join scalars with `                                                             | `". |
+| **Truncated JSON fails the run; a corrupt CSV row or NDJSON line only sets that record aside**                                                                                                                                                                                                                                                                                         | You can't know what a cut-off document is missing. A line-based format isolates the damage.                                                                  | A partner with a flaky export has to resend the whole JSON file.                                                                     |
+| **SQLite (`node:sqlite`) and synchronous processing** ([ADR 4](docs/adr/0004-sqlite-and-synchronous-processing.md))                                                                                                                                                                                                                                                                    | Zero setup for reviewers, transactional, and the schema maps onto Postgres.                                                                                  | One writer: runs are processed one after another, inside the request.                                                                |
+| **No LLM in the pipeline**                                                                                                                                                                                                                                                                                                                                                             | Mapping and normalization are deterministic and testable, and every decision has a stated reason.                                                            | Unknown vocabularies need aliases added by hand. See "next" below.                                                                   |
 
 ## Assumptions
 
@@ -190,18 +190,20 @@ Deliberately not covered: browser tests for the UI (checked manually and with sc
 
 Measured on the dev container (`npm run gen:large`, then `npm run bench`):
 
-| Workload | Throughput | Peak RSS |
-|---|---|---|
-| Core pipeline, 1M-row CSV (71 MB, 2% defects) | ~70k records/s (14 s) | 324 MB |
-| Core pipeline, 200k-row NDJSON (29 MB) | ~81k records/s | 165 MB |
-| API end to end, 100k-row CSV (upload, analyze, stage, promote in SQLite) | ~26k records/s (3.8 s wall) | – |
+| Workload                                                                 | Throughput                  | Peak RSS |
+| ------------------------------------------------------------------------ | --------------------------- | -------- |
+| Core pipeline, 1M-row CSV (71 MB, 2% defects)                            | ~70k records/s (14 s)       | 324 MB   |
+| Core pipeline, 200k-row NDJSON (29 MB)                                   | ~81k records/s              | 165 MB   |
+| API end to end, 100k-row CSV (upload, analyze, stage, promote in SQLite) | ~26k records/s (3.8 s wall) | –        |
 
 **Where the time and memory go:**
+
 - **Parsing and normalization** are CPU-bound on one core.
 - **Memory** is dominated by the SKU set used for duplicate detection (O(unique SKUs)) and the upload buffer. Issue aggregation is bounded (counts plus 5 samples per group).
 - **In the API**, the cost is per-row SQLite inserts into staging, then promotion. Processing is serialized because SQLite has a single writer.
 
 **How it would scale:**
+
 1. Store uploads in object storage, and move processing to a queue with workers (SQS/BullMQ). The API returns `202` immediately, and the run status already models that.
 2. Move to Postgres with `COPY` into staging and a set-based `INSERT … ON CONFLICT` for promotion, instead of per-row statements.
 3. Parallelize across files (per-partner concurrency limit of 1, so that partner's runs stay ordered), not within one file.
@@ -212,7 +214,7 @@ Measured on the dev container (`npm run gen:large`, then `npm run bench`):
 
 Intentionally left out, given the time box:
 
-- **LLM-assisted mapping** for headers that no alias or similarity rule catches (for example `Bezeichnung_lang_DE`). It would *suggest only*, behind the same confirmation step, with its reasoning shown. Deterministic rules stay first because they are testable and free.
+- **LLM-assisted mapping** for headers that no alias or similarity rule catches (for example `Bezeichnung_lang_DE`). It would _suggest only_, behind the same confirmation step, with its reasoning shown. Deterministic rules stay first because they are testable and free.
 - **XML and Excel adapters.** XML is the planned live extension: one adapter plus one registry line, and the contract tests apply. See [docs/adding-a-format.md](docs/adding-a-format.md).
 - **Pull-based sources** (polling a partner API or SFTP). Today files are pushed by upload.
 - **A partner self-service portal** to upload files and see their own set-aside rows.

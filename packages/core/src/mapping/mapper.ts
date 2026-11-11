@@ -87,7 +87,12 @@ function nameCandidates(sourceField: string): Candidate[] {
   const full = normalizeFieldName(sourceField.replaceAll('.', '_'));
   const isPath = sourceField.includes('.') || sourceField.includes('[');
   const inArray = sourceField.includes('[');
-  const leaf = normalizeFieldName(sourceField.split('.').at(-1)!.replace(/\[\d+\]/g, ''));
+  const leaf = normalizeFieldName(
+    sourceField
+      .split('.')
+      .at(-1)!
+      .replace(/\[\d+\]/g, ''),
+  );
   const out: Candidate[] = [];
 
   if ((CANONICAL_FIELD_NAMES as readonly string[]).includes(full)) {
@@ -175,12 +180,7 @@ export function fingerprintFields(fields: string[]): string {
 
 const displaySample = (v: unknown) => (typeof v === 'string' ? v : JSON.stringify(v)).slice(0, 40);
 
-export function proposeMapping(
-  profiles: FieldProfile[],
-  importType: ImportTypeConfig,
-  locale: PartnerLocale,
-  saved: SavedMapping = {},
-): MappingProposal {
+export function proposeMapping(profiles: FieldProfile[], importType: ImportTypeConfig, locale: PartnerLocale, saved: SavedMapping = {}): MappingProposal {
   const scored = profiles.map((p) => ({ profile: p, candidates: scoreField(p, locale) }));
 
   // Global greedy assignment: strongest (source, target) pairs first, each used once.
@@ -226,14 +226,35 @@ export function proposeMapping(
 
   const required = new Set(importType.requiredFields);
   const matches: FieldMatch[] = scored.map(({ profile, candidates }) => {
-    const samples = profile.samples.filter((s) => !isBlank(s)).slice(0, 5).map(displaySample);
+    const samples = profile.samples
+      .filter((s) => !isBlank(s))
+      .slice(0, 5)
+      .map(displaySample);
     if (ignored.has(profile.name)) {
-      return { sourceField: profile.name, target: null, confidence: 1, method: 'saved', status: 'ignored', reason: 'Ignored for this partner', alternatives: candidates.slice(0, 3), samples };
+      return {
+        sourceField: profile.name,
+        target: null,
+        confidence: 1,
+        method: 'saved',
+        status: 'ignored',
+        reason: 'Ignored for this partner',
+        alternatives: candidates.slice(0, 3),
+        samples,
+      };
     }
     const chosen = assigned.get(profile.name);
     const alternatives = candidates.filter((c) => c.target !== chosen?.target).slice(0, 3);
     if (!chosen) {
-      return { sourceField: profile.name, target: null, confidence: candidates[0]?.confidence ?? 0, method: 'none', status: 'unmapped', reason: 'No confident match', alternatives: candidates.slice(0, 3), samples };
+      return {
+        sourceField: profile.name,
+        target: null,
+        confidence: candidates[0]?.confidence ?? 0,
+        method: 'none',
+        status: 'unmapped',
+        reason: 'No confident match',
+        alternatives: candidates.slice(0, 3),
+        samples,
+      };
     }
     let status = chosen.method === 'saved' ? 'auto' : statusFor(chosen.confidence);
     let reason = chosen.reason;
@@ -245,7 +266,16 @@ export function proposeMapping(
       status = 'needs_confirmation';
       reason += `; another column also looks like "${chosen.target}"`;
     }
-    return { sourceField: profile.name, target: chosen.target, confidence: Number(chosen.confidence.toFixed(3)), method: chosen.method, status, reason, alternatives, samples };
+    return {
+      sourceField: profile.name,
+      target: chosen.target,
+      confidence: Number(chosen.confidence.toFixed(3)),
+      method: chosen.method,
+      status,
+      reason,
+      alternatives,
+      samples,
+    };
   });
 
   const mapping = Object.create(null) as Record<string, CanonicalFieldName>;

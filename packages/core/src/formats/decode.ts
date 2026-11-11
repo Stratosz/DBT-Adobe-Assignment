@@ -9,10 +9,7 @@ export interface DecodeResult {
   encoding: 'utf-8' | 'windows-1252';
 }
 
-export async function* decodeChunks(
-  bytes: AsyncIterable<Uint8Array>,
-  result: DecodeResult = { encoding: 'utf-8' },
-): AsyncIterable<string> {
+export async function* decodeChunks(bytes: AsyncIterable<Uint8Array>, result: DecodeResult = { encoding: 'utf-8' }): AsyncIterable<string> {
   let utf8: InstanceType<typeof TextDecoder> | null = new TextDecoder('utf-8', { fatal: true });
   const latin = new TextDecoder('windows-1252');
   for await (const chunk of bytes) {
@@ -45,10 +42,7 @@ export function decodeHead(bytes: Uint8Array, max = 16 * 1024): string {
 }
 
 /** Split a text stream into lines (handles \n and \r\n), tracking 1-based line numbers. */
-export async function* lines(
-  text: AsyncIterable<string>,
-  maxLineLength = 1_000_000,
-): AsyncIterable<{ line: string; lineNo: number; tooLong?: boolean }> {
+export async function* lines(text: AsyncIterable<string>, maxLineLength = 1_000_000): AsyncIterable<{ line: string; lineNo: number; tooLong?: boolean }> {
   let buffer = '';
   let scanFrom = 0; // only scan new text for newlines (keeps this linear)
   let lineNo = 0;

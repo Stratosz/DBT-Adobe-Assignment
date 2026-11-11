@@ -16,7 +16,7 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 let seed = 42;
-const rand = () => ((seed = (seed * 1664525 + 1013904223) % 2 ** 32) / 2 ** 32);
+const rand = () => (seed = (seed * 1664525 + 1013904223) % 2 ** 32) / 2 ** 32;
 const pick = <T>(xs: T[]): T => xs[Math.floor(rand() * xs.length)]!;
 
 function gtin13(prefix: string): string {
@@ -34,13 +34,40 @@ function upc12(): string {
   return body + ((10 - (sum % 10)) % 10);
 }
 
-const NAMES = ['Wanderjacke', 'Regenhose', 'Trekkingschuh', 'Fleecepullover', 'Rucksack 30L', 'Schlafsack Daune', 'Stirnlampe', 'Trinkflasche', 'Zelt 2P', 'Wandersocken', 'Softshell-Weste', 'Gamaschen'];
+const NAMES = [
+  'Wanderjacke',
+  'Regenhose',
+  'Trekkingschuh',
+  'Fleecepullover',
+  'Rucksack 30L',
+  'Schlafsack Daune',
+  'Stirnlampe',
+  'Trinkflasche',
+  'Zelt 2P',
+  'Wandersocken',
+  'Softshell-Weste',
+  'Gamaschen',
+];
 const COLORS = ['Blau', 'Grün', 'Schwarz', 'Rot', 'Grau'];
 const BRANDS = ['Nordwind', 'Fjellgut', 'Bergwerk', 'Höhenluft'];
 const CATS = ['Bekleidung > Jacken', 'Bekleidung > Hosen', 'Schuhe > Trekking', 'Ausrüstung > Rucksäcke', 'Ausrüstung > Zelte'];
-const deMoney = (n: number) => n.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+const deMoney = (n: number) =>
+  n
+    .toFixed(2)
+    .replace('.', ',')
+    .replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
-interface NwProduct { sku: string; name: string; brand: string; cat: string; price: number; qty: number; ean: string; color: string; changed: string }
+interface NwProduct {
+  sku: string;
+  name: string;
+  brand: string;
+  cat: string;
+  price: number;
+  qty: number;
+  ean: string;
+  color: string;
+  changed: string;
+}
 const nordwind: NwProduct[] = Array.from({ length: 30 }, (_, i) => ({
   sku: `NW-${String(1000 + i)}`,
   name: `${pick(NAMES)} ${pick(COLORS)}`,
@@ -65,34 +92,46 @@ mkdirSync(join(root, 'peak'), { recursive: true });
 // ---- Nordwind week 1: clean, Windows-1252, ";" separated -------------------------------------
 {
   const header = 'Artikelnummer;Bezeichnung;Marke;Kategorie;Preis;Währung;Bestand;EAN;Verfügbarkeit;Geändert am';
-  const rows = nordwind.map((p, i) => [
-    p.sku, p.name, p.brand, p.cat, deMoney(p.price), 'EUR', p.qty, p.ean,
-    p.qty > 0 ? 'Auf Lager' : 'Ausverkauft', p.changed,
-  ].join(';'));
+  const rows = nordwind.map((p) =>
+    [p.sku, p.name, p.brand, p.cat, deMoney(p.price), 'EUR', p.qty, p.ean, p.qty > 0 ? 'Auf Lager' : 'Ausverkauft', p.changed].join(';'),
+  );
   writeFileSync(join(root, 'nordwind', 'week1_catalog.csv'), toCp1252(`${header}\r\n${rows.join('\r\n')}\r\n`));
 }
 
 // ---- Nordwind week 2: ERP upgrade renamed columns, added "Farbe", one price "auf Anfrage" -----
 {
   const header = 'Artikel-Nr.;Bezeichnung;Marke;Kategorie;VK-Preis;Währung;Lagerbestand;EAN;Farbe;Geändert am';
-  const rows = nordwind.map((p, i) => [
-    p.sku, p.name, p.brand, p.cat, i === 7 ? 'auf Anfrage' : deMoney(p.price * 1.03), 'EUR', p.qty, p.ean, p.color, p.changed.replace('.10.', '.11.'),
-  ].join(';'));
+  const rows = nordwind.map((p, i) =>
+    [p.sku, p.name, p.brand, p.cat, i === 7 ? 'auf Anfrage' : deMoney(p.price * 1.03), 'EUR', p.qty, p.ean, p.color, p.changed.replace('.10.', '.11.')].join(
+      ';',
+    ),
+  );
   writeFileSync(join(root, 'nordwind', 'week2_catalog.csv'), toCp1252(`${header}\r\n${rows.join('\r\n')}\r\n`));
 }
 
 // ---- Nordwind week 3: same layout as week 2, but the export lost most prices ------------------
 {
   const header = 'Artikel-Nr.;Bezeichnung;Marke;Kategorie;VK-Preis;Währung;Lagerbestand;EAN;Farbe;Geändert am';
-  const rows = nordwind.map((p, i) => [
-    p.sku, p.name, p.brand, p.cat, i % 3 === 0 ? deMoney(p.price) : '', 'EUR', p.qty, p.ean, p.color, '01.12.2026',
-  ].join(';'));
+  const rows = nordwind.map((p, i) =>
+    [p.sku, p.name, p.brand, p.cat, i % 3 === 0 ? deMoney(p.price) : '', 'EUR', p.qty, p.ean, p.color, '01.12.2026'].join(';'),
+  );
   rows.push(rows[3]!); // duplicate row from a bad join
   writeFileSync(join(root, 'nordwind', 'week3_catalog.csv'), toCp1252(`${header}\r\n${rows.join('\r\n')}\r\n`));
 }
 
 // ---- Peak Supply: nested JSON from their API -------------------------------------------------
-const GEAR = ['Trail Runner', 'Rain Shell', 'Camp Stove', 'Dry Bag 20L', 'Trekking Poles', 'Bivy Sack', 'Water Filter', 'Base Layer', 'Insulated Mug', 'Map Case'];
+const GEAR = [
+  'Trail Runner',
+  'Rain Shell',
+  'Camp Stove',
+  'Dry Bag 20L',
+  'Trekking Poles',
+  'Bivy Sack',
+  'Water Filter',
+  'Base Layer',
+  'Insulated Mug',
+  'Map Case',
+];
 const peak = Array.from({ length: 30 }, (_, i) => ({
   sku: `PK${String(5000 + i)}`,
   name: `${pick(GEAR)} ${pick(['Pro', 'Lite', 'XL', 'Classic'])}`,

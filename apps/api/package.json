@@ -17,6 +17,7 @@
     "@feed/core": "*",
     "fastify": "^5.2.0",
     "prom-client": "^15.1.0",
+    "tsx": "^4.23.15",
     "zod": "^4.6.7"
   },
   "devDependencies": {

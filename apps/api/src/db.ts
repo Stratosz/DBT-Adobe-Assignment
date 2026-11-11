@@ -194,7 +194,9 @@ export class Db {
     }
     args.push(Math.min(filter.limit ?? 100, 500));
     return this.sqlite
-      .prepare(`SELECT id, at, actor_id AS actorId, actor_role AS actorRole, action, run_id AS runId, partner_id AS partnerId, details_json FROM audit_events ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY id DESC LIMIT ?`)
+      .prepare(
+        `SELECT id, at, actor_id AS actorId, actor_role AS actorRole, action, run_id AS runId, partner_id AS partnerId, details_json FROM audit_events ${where.length ? `WHERE ${where.join(' AND ')}` : ''} ORDER BY id DESC LIMIT ?`,
+      )
       .all(...args)
       .map(({ details_json, ...rest }) => ({ ...rest, details: parse(details_json) }));
   }
@@ -258,7 +260,11 @@ export class Db {
   }
 
   getMapping(partnerId: string, sourceField: string) {
-    return this.sqlite.prepare('SELECT source_field AS sourceField, target FROM partner_mappings WHERE partner_id = ? AND source_field = ?').get(partnerId, sourceField) ?? null;
+    return (
+      this.sqlite
+        .prepare('SELECT source_field AS sourceField, target FROM partner_mappings WHERE partner_id = ? AND source_field = ?')
+        .get(partnerId, sourceField) ?? null
+    );
   }
 
   saveMappingDecisions(partnerId: string, runId: string | null, decisions: SavedMapping, decidedBy: string): void {
@@ -282,7 +288,13 @@ export class Db {
     const stmt = this.sqlite.prepare('SELECT price, currency, updated_at FROM products WHERE partner_id = ? AND sku = ?');
     return (sku: string) => {
       const row = stmt.get(partnerId, sku);
-      return row ? { price: (row.price as number | null) ?? null, currency: (row.currency as string | null) ?? null, updated_at: (row.updated_at as string | null) ?? null } : null;
+      return row
+        ? {
+            price: (row.price as number | null) ?? null,
+            currency: (row.currency as string | null) ?? null,
+            updated_at: (row.updated_at as string | null) ?? null,
+          }
+        : null;
     };
   }
 
@@ -299,8 +311,16 @@ export class Db {
 
   updateRun(id: string, patch: Partial<Omit<RunRow, 'id' | 'createdAt' | 'updatedAt'>>): void {
     const columns: Record<string, string> = {
-      format: 'format', status: 'status', statusReason: 'status_reason', policy: 'policy_json', analysis: 'analysis_json',
-      drift: 'drift_json', mapping: 'mapping_json', result: 'result_json', fatal: 'fatal_json', commit: 'commit_json',
+      format: 'format',
+      status: 'status',
+      statusReason: 'status_reason',
+      policy: 'policy_json',
+      analysis: 'analysis_json',
+      drift: 'drift_json',
+      mapping: 'mapping_json',
+      result: 'result_json',
+      fatal: 'fatal_json',
+      commit: 'commit_json',
     };
     const sets: string[] = [];
     const values: (string | number | null)[] = [];
@@ -338,7 +358,9 @@ export class Db {
   /** Field list of the previous analyzed run for this partner + format, for drift detection. */
   previousFields(partnerId: string, format: string, excludeRunId: string): { runId: string; fields: string[]; fingerprint: string } | null {
     const row = this.sqlite
-      .prepare(`SELECT id, analysis_json FROM runs WHERE partner_id = ? AND format = ? AND id != ? AND analysis_json IS NOT NULL ORDER BY created_at DESC LIMIT 1`)
+      .prepare(
+        `SELECT id, analysis_json FROM runs WHERE partner_id = ? AND format = ? AND id != ? AND analysis_json IS NOT NULL ORDER BY created_at DESC LIMIT 1`,
+      )
       .get(partnerId, format, excludeRunId);
     if (!row) return null;
     const analysis = parse(row.analysis_json) as { fields?: { name: string }[]; proposal?: { fingerprint: string } } | null;
@@ -383,8 +405,10 @@ export class Db {
     const quarantined = this.sqlite.prepare('INSERT INTO quarantine (run_id, seq, location_json, raw_json, issues_json) VALUES (?, ?, ?, ?, ?)');
     let seq = 0;
     return {
-      stage: (product: NormalizedProduct, presentFields: string[]) => staged.run(runId, seq++, product.sku, JSON.stringify(product), JSON.stringify(presentFields)),
-      quarantine: (location: unknown, raw: unknown, issues: unknown) => quarantined.run(runId, seq++, JSON.stringify(location), json(raw), JSON.stringify(issues)),
+      stage: (product: NormalizedProduct, presentFields: string[]) =>
+        staged.run(runId, seq++, product.sku, JSON.stringify(product), JSON.stringify(presentFields)),
+      quarantine: (location: unknown, raw: unknown, issues: unknown) =>
+        quarantined.run(runId, seq++, JSON.stringify(location), json(raw), JSON.stringify(issues)),
     };
   }
 

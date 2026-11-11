@@ -25,5 +25,5 @@ Bad data comes in two shapes:
 ## Consequences
 
 - One rule covers both kinds of failure, and it is explainable in one sentence ("65% of rows were bad, above the 5% limit").
-- Small files are sensitive: 1 bad row in 20 is 5%. A minimum-count rule ("hold only if more than 5% *and* more than N rows") is a reasonable next step.
+- Small files are sensitive: 1 bad row in 20 is 5%. A minimum-count rule ("hold only if more than 5% _and_ more than N rows") is a reasonable next step.
 - Approval is a human bottleneck, so `feed_runs_waiting` is exported for alerting.

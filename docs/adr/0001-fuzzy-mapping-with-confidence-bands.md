@@ -14,16 +14,16 @@ The most common way supplier feeds drift is that columns get renamed (`Preis` be
 
 Option 3, with explicit bands and safety rules (`packages/core/src/mapping/mapper.ts`):
 
-| Evidence | Confidence |
-|---|---|
-| Mapping saved for this supplier (a person decided) | 1.00 |
-| Exact canonical name | 1.00 |
-| Known alias | 0.97 |
-| Known alias at the end of a nested path (`details.brand`) | 0.90 |
-| Name similarity (Jaro-Winkler / token overlap) | at most 0.88 |
-| Sample values fit the field's type (≥90%) | +0.10 |
-| Sample values contradict the type (<50% fit) | −0.25 |
-| Values alone identify the field (GTIN check digits, ISO currencies, URLs, availability words) | 0.75–0.80 |
+| Evidence                                                                                      | Confidence   |
+| --------------------------------------------------------------------------------------------- | ------------ |
+| Mapping saved for this supplier (a person decided)                                            | 1.00         |
+| Exact canonical name                                                                          | 1.00         |
+| Known alias                                                                                   | 0.97         |
+| Known alias at the end of a nested path (`details.brand`)                                     | 0.90         |
+| Name similarity (Jaro-Winkler / token overlap)                                                | at most 0.88 |
+| Sample values fit the field's type (≥90%)                                                     | +0.10        |
+| Sample values contradict the type (<50% fit)                                                  | −0.25        |
+| Values alone identify the field (GTIN check digits, ISO currencies, URLs, availability words) | 0.75–0.80    |
 
 - **Bands:** at 0.90 or above the mapping is applied automatically. Between 0.65 and 0.90 a person confirms it. Below 0.65 the column is not imported (it stays in the raw record and is reported).
 - **Safety rules:**

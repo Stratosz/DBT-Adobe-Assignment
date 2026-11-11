@@ -88,7 +88,12 @@ export function App() {
     [refresh],
   );
 
-  if (loadError) return <main className="boot-error" role="alert">{loadError}</main>;
+  if (loadError)
+    return (
+      <main className="boot-error" role="alert">
+        {loadError}
+      </main>
+    );
   if (!checked) return <main className="boot">Loading…</main>;
   if (!me || !meta) return <SignIn onSignedIn={() => void load()} />;
 
@@ -97,12 +102,20 @@ export function App() {
       <header className="masthead">
         <h1>Supplier feed intake</h1>
         <nav className="tabs" aria-label="Sections">
-          <button className={view === 'files' ? 'is-active' : ''} aria-current={view === 'files'} onClick={() => setView('files')}>Files</button>
-          <button className={view === 'suppliers' ? 'is-active' : ''} aria-current={view === 'suppliers'} onClick={() => setView('suppliers')}>Suppliers</button>
+          <button className={view === 'files' ? 'is-active' : ''} aria-current={view === 'files'} onClick={() => setView('files')}>
+            Files
+          </button>
+          <button className={view === 'suppliers' ? 'is-active' : ''} aria-current={view === 'suppliers'} onClick={() => setView('suppliers')}>
+            Suppliers
+          </button>
         </nav>
         <div className="whoami">
-          <span>{me.name}, {me.role}</span>
-          <button className="link-button on-dark" onClick={signOut}>Switch user</button>
+          <span>
+            {me.name}, {me.role}
+          </span>
+          <button className="link-button on-dark" onClick={signOut}>
+            Switch user
+          </button>
         </div>
       </header>
       {view === 'files' ? (
@@ -160,8 +173,14 @@ function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
           API key
           <input type="password" autoComplete="off" value={key} onChange={(e) => setKey(e.target.value)} />
         </label>
-        <button type="submit" disabled={!key.trim()}>Sign in</button>
-        {error && <p className="bad-text" role="alert">{error}</p>}
+        <button type="submit" disabled={!key.trim()}>
+          Sign in
+        </button>
+        {error && (
+          <p className="bad-text" role="alert">
+            {error}
+          </p>
+        )}
       </form>
       {SHOW_DEMO_KEYS && (
         <section className="demo-keys">
@@ -170,8 +189,12 @@ function SignIn({ onSignedIn }: { onSignedIn: () => void }) {
           <ul>
             {DEMO_KEYS.map((d) => (
               <li key={d.key}>
-                <button className="secondary" onClick={() => void signIn(d.key)}>Sign in as {d.who}</button>
-                <span>{d.role}: {d.does}</span>
+                <button className="secondary" onClick={() => void signIn(d.key)}>
+                  Sign in as {d.who}
+                </button>
+                <span>
+                  {d.role}: {d.does}
+                </span>
               </li>
             ))}
           </ul>
@@ -186,10 +209,12 @@ function EmptyDetail() {
     <section className="empty">
       <h2>Upload a supplier file to inspect it</h2>
       <p>
-        Files are checked against the product model first. Columns we cannot place with confidence wait for you, rows with bad data are set
-        aside with the reason, and a file with too many bad rows is held instead of imported.
+        Files are checked against the product model first. Columns we cannot place with confidence wait for you, rows with bad data are set aside with the
+        reason, and a file with too many bad rows is held instead of imported.
       </p>
-      <p className="muted">Try the demo files in <code>fixtures/</code>: Nordwind weeks 1 to 3, then Peak's JSON catalog.</p>
+      <p className="muted">
+        Try the demo files in <code>fixtures/</code>: Nordwind weeks 1 to 3, then Peak's JSON catalog.
+      </p>
     </section>
   );
 }
@@ -246,7 +271,9 @@ function UploadForm({ meta, partners, me, onDone }: { meta: Meta; partners: Part
         Supplier
         <select value={partner} onChange={(e) => setPartnerId(e.target.value)}>
           {partners.map((p) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
           ))}
         </select>
       </label>
@@ -254,10 +281,14 @@ function UploadForm({ meta, partners, me, onDone }: { meta: Meta; partners: Part
         What the file contains
         <select value={importType} onChange={(e) => setImportType(e.target.value)}>
           {meta.importTypes.map((t) => (
-            <option key={t.id} value={t.id}>{t.label}</option>
+            <option key={t.id} value={t.id}>
+              {t.label}
+            </option>
           ))}
         </select>
-        <span className="help">{type.description} Held if more than {pct(type.maxErrorRate)} of rows are bad.</span>
+        <span className="help">
+          {type.description} Held if more than {pct(type.maxErrorRate)} of rows are bad.
+        </span>
       </label>
       <label>
         File
@@ -270,30 +301,46 @@ function UploadForm({ meta, partners, me, onDone }: { meta: Meta; partners: Part
           <select value={format} onChange={(e) => setFormat(e.target.value)}>
             <option value="">Detect from the file</option>
             {meta.formats.map((f) => (
-              <option key={f.id} value={f.id}>{f.label}</option>
+              <option key={f.id} value={f.id}>
+                {f.label}
+              </option>
             ))}
           </select>
         </label>
-        {can(me, 'reviewer') && (<>
-        <label>
-          Bad-row limit for this file (%)
-          <input type="number" min={meta.overrideBounds.min * 100} max={meta.overrideBounds.max * 100} step="1" placeholder={String(type.maxErrorRate * 100)} value={override} onChange={(e) => setOverride(e.target.value)} />
-        </label>
-        {override && (
-          <label>
-            Why this file needs a different limit
-            <input type="text" required value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Stored with the run" />
-          </label>
+        {can(me, 'reviewer') && (
+          <>
+            <label>
+              Bad-row limit for this file (%)
+              <input
+                type="number"
+                min={meta.overrideBounds.min * 100}
+                max={meta.overrideBounds.max * 100}
+                step="1"
+                placeholder={String(type.maxErrorRate * 100)}
+                value={override}
+                onChange={(e) => setOverride(e.target.value)}
+              />
+            </label>
+            {override && (
+              <label>
+                Why this file needs a different limit
+                <input type="text" required value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Stored with the run" />
+              </label>
+            )}
+          </>
         )}
-        </>)}
       </details>
-      <button type="submit" disabled={!file || busy}>{busy ? 'Uploading…' : 'Check and import'}</button>
+      <button type="submit" disabled={!file || busy}>
+        {busy ? 'Uploading…' : 'Check and import'}
+      </button>
       {error && (
         <div className="form-error" role="alert">
           <strong>{error.message}</strong>
           {error.hint && <p>{error.hint}</p>}
           {error.code === 'DUPLICATE_FILE' && (
-            <button type="button" className="secondary" onClick={() => void submit(true)}>Import it again anyway</button>
+            <button type="button" className="secondary" onClick={() => void submit(true)}>
+              Import it again anyway
+            </button>
           )}
         </div>
       )}
@@ -315,7 +362,9 @@ function RunList({ runs, partners, selected, onSelect }: { runs: RunSummary[]; p
             <button className={`run-link ${r.id === selected ? 'is-selected' : ''}`} onClick={() => onSelect(r.id)} aria-current={r.id === selected}>
               <span className={`status-pill s-${r.status}`}>{STATUS_TEXT[r.status]}</span>
               <span className="run-file">{r.filename ?? r.id}</span>
-              <span className="run-meta">{name(r.partnerId)}, {time(r.createdAt)}</span>
+              <span className="run-meta">
+                {name(r.partnerId)}, {time(r.createdAt)}
+              </span>
             </button>
           </li>
         ))}
@@ -331,7 +380,10 @@ function RunView({ id, meta, partners, me, onChanged }: { id: string; meta: Meta
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    api.run(id).then(setRun).catch((e: Error) => setError(e.message));
+    api
+      .run(id)
+      .then(setRun)
+      .catch((e: Error) => setError(e.message));
   }, [id]);
 
   // Processing happens in the background: poll until the run settles.
@@ -339,10 +391,13 @@ function RunView({ id, meta, partners, me, onChanged }: { id: string; meta: Meta
   useEffect(() => {
     if (!inFlight) return;
     const t = setInterval(() => {
-      api.run(id).then((r) => {
-        setRun(r);
-        if (!IN_FLIGHT.includes(r.status)) onChanged(r);
-      }).catch(() => {});
+      api
+        .run(id)
+        .then((r) => {
+          setRun(r);
+          if (!IN_FLIGHT.includes(r.status)) onChanged(r);
+        })
+        .catch(() => {});
     }, 1000);
     return () => clearInterval(t);
   }, [id, inFlight, onChanged]);
@@ -364,13 +419,20 @@ function RunView({ id, meta, partners, me, onChanged }: { id: string; meta: Meta
           <h2>{run.filename ?? run.id}</h2>
           <p className="run-sub">
             {partner?.name ?? run.partnerId}, {importType?.label.toLowerCase()}
-            {run.analysis?.format && <>, read as {run.analysis.format.toUpperCase()}{run.analysis.encoding !== 'utf-8' && ` (${run.analysis.encoding})`}</>}
+            {run.analysis?.format && (
+              <>
+                , read as {run.analysis.format.toUpperCase()}
+                {run.analysis.encoding !== 'utf-8' && ` (${run.analysis.encoding})`}
+              </>
+            )}
           </p>
         </div>
         <span className={`status-pill large s-${run.status}`}>{STATUS_TEXT[run.status]}</span>
       </header>
 
-      <p className={`verdict v-${run.status}`} aria-live="polite">{verdict(run)}</p>
+      <p className={`verdict v-${run.status}`} aria-live="polite">
+        {verdict(run)}
+      </p>
 
       {run.fatal && (
         <section className="callout bad">
@@ -420,10 +482,22 @@ function Figures({ run }: { run: RunDetail }) {
   return (
     <section className="figures" aria-label="Row counts">
       <dl>
-        <div><dt>Rows read</dt><dd>{r.counts.total}</dd></div>
-        <div><dt>Accepted</dt><dd>{r.counts.accepted}</dd></div>
-        <div><dt>With warnings</dt><dd>{r.counts.acceptedWithWarnings}</dd></div>
-        <div><dt>Set aside</dt><dd className={r.counts.quarantined ? 'bad-text' : ''}>{r.counts.quarantined}</dd></div>
+        <div>
+          <dt>Rows read</dt>
+          <dd>{r.counts.total}</dd>
+        </div>
+        <div>
+          <dt>Accepted</dt>
+          <dd>{r.counts.accepted}</dd>
+        </div>
+        <div>
+          <dt>With warnings</dt>
+          <dd>{r.counts.acceptedWithWarnings}</dd>
+        </div>
+        <div>
+          <dt>Set aside</dt>
+          <dd className={r.counts.quarantined ? 'bad-text' : ''}>{r.counts.quarantined}</dd>
+        </div>
       </dl>
       {(!!r.counts.skippedStale || !!r.counts.flaggedForReview) && (
         <p className="figures-note">
@@ -434,7 +508,10 @@ function Figures({ run }: { run: RunDetail }) {
       <div className="limit">
         <div className="limit-label">
           <span>Bad rows {pct(r.errorRate)}</span>
-          <span>Limit {pct(r.maxErrorRate)}{run.policy.overridden && ` (changed for this file: ${run.policy.overrideReason})`}</span>
+          <span>
+            Limit {pct(r.maxErrorRate)}
+            {run.policy.overridden && ` (changed for this file: ${run.policy.overrideReason})`}
+          </span>
         </div>
         <div className="limit-track" role="img" aria-label={`${pct(r.errorRate)} bad rows against a ${pct(r.maxErrorRate)} limit`}>
           <div className={`limit-fill ${over ? 'over' : ''}`} style={{ width: `${Math.min(100, r.errorRate * 100)}%` }} />
@@ -466,7 +543,11 @@ function ReviewActions({ run, me, onDone }: { run: RunDetail; me: Me; onDone: (r
     <section className="callout warn">
       <h3>Nothing from this file is in the catalog yet</h3>
       {reasons.length > 0 && (
-        <ul className="hold-reasons">{reasons.map((r) => <li key={r}>{r}</li>)}</ul>
+        <ul className="hold-reasons">
+          {reasons.map((r) => (
+            <li key={r}>{r}</li>
+          ))}
+        </ul>
       )}
       <p>Check the list below and the set-aside rows. Import only if you know why; otherwise reject the file and ask the supplier for a corrected one.</p>
       {!can(me, 'reviewer') ? (
@@ -480,13 +561,21 @@ function ReviewActions({ run, me, onDone }: { run: RunDetail; me: Me; onDone: (r
             <input type="text" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="e.g. Clearance sale confirmed by the supplier" />
           </label>
           <div className="actions">
-            <button disabled={busy || !reason.trim()} onClick={() => void act(api.approve)}>Import the {plural(run.result?.counts.accepted ?? 0, 'good row')}</button>
-            <button className="secondary" disabled={busy} onClick={() => void act(api.reject)}>Reject the file</button>
+            <button disabled={busy || !reason.trim()} onClick={() => void act(api.approve)}>
+              Import the {plural(run.result?.counts.accepted ?? 0, 'good row')}
+            </button>
+            <button className="secondary" disabled={busy} onClick={() => void act(api.reject)}>
+              Reject the file
+            </button>
           </div>
         </>
       )}
       {!!run.result?.counts.quarantined && <DownloadButton runId={run.id} label="Download set-aside rows" />}
-      {error && <p className="bad-text" role="alert">{error}</p>}
+      {error && (
+        <p className="bad-text" role="alert">
+          {error}
+        </p>
+      )}
     </section>
   );
 }
@@ -495,7 +584,9 @@ function DownloadButton({ runId, label }: { runId: string; label: string }) {
   const [error, setError] = useState(false);
   return (
     <span>
-      <button className="link-button" onClick={() => api.downloadQuarantine(runId).catch(() => setError(true))}>{label}</button>
+      <button className="link-button" onClick={() => api.downloadQuarantine(runId).catch(() => setError(true))}>
+        {label}
+      </button>
       {error && <span className="bad-text"> Download failed.</span>}
     </span>
   );
@@ -507,10 +598,24 @@ function Drift({ drift }: { drift: NonNullable<RunDetail['drift']> }) {
       <h3>The columns changed since this supplier's last file</h3>
       <div className="drift-cols">
         {!!drift.added?.length && (
-          <div><h4>New</h4><ul>{drift.added.map((f) => <li key={f}>{f}</li>)}</ul></div>
+          <div>
+            <h4>New</h4>
+            <ul>
+              {drift.added.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+          </div>
         )}
         {!!drift.removed?.length && (
-          <div><h4>Gone</h4><ul>{drift.removed.map((f) => <li key={f}>{f}</li>)}</ul></div>
+          <div>
+            <h4>Gone</h4>
+            <ul>
+              {drift.removed.map((f) => (
+                <li key={f}>{f}</li>
+              ))}
+            </ul>
+          </div>
         )}
       </div>
     </section>
@@ -532,7 +637,13 @@ function Confidence({ value }: { value: number }) {
   );
 }
 
-const STATUS_WORD: Record<FieldMatch['status'] | 'confirmed', string> = { auto: 'Matched', needs_confirmation: 'Check', confirmed: 'Confirmed by you', unmapped: 'Not imported', ignored: 'Not imported' };
+const STATUS_WORD: Record<FieldMatch['status'] | 'confirmed', string> = {
+  auto: 'Matched',
+  needs_confirmation: 'Check',
+  confirmed: 'Confirmed by you',
+  unmapped: 'Not imported',
+  ignored: 'Not imported',
+};
 
 function MappingTable({ run, meta, me, onDone }: { run: RunDetail; meta: Meta; me: Me; onDone: (r: RunDetail) => void }) {
   const proposal = run.analysis!.proposal!;
@@ -603,10 +714,17 @@ function MappingTable({ run, meta, me, onDone }: { run: RunDetail; meta: Meta; m
                 <td className="samples">{m.samples.slice(0, 3).join(', ') || <span className="muted">empty</span>}</td>
                 <td>
                   {editable ? (
-                    <select aria-label={`Product field for ${m.sourceField}`} value={target} onChange={(e) => setChoice({ ...choice, [m.sourceField]: e.target.value })}>
+                    <select
+                      aria-label={`Product field for ${m.sourceField}`}
+                      value={target}
+                      onChange={(e) => setChoice({ ...choice, [m.sourceField]: e.target.value })}
+                    >
                       <option value="">Don't import</option>
                       {meta.fields.map((f) => (
-                        <option key={f.name} value={f.name}>{f.name}{required.has(f.name) ? ' (required)' : ''}</option>
+                        <option key={f.name} value={f.name}>
+                          {f.name}
+                          {required.has(f.name) ? ' (required)' : ''}
+                        </option>
                       ))}
                     </select>
                   ) : (
@@ -614,7 +732,9 @@ function MappingTable({ run, meta, me, onDone }: { run: RunDetail; meta: Meta; m
                   )}
                   <span className="reason">{m.reason}</span>
                 </td>
-                <td><Confidence value={m.confidence} /></td>
+                <td>
+                  <Confidence value={m.confidence} />
+                </td>
               </tr>
             );
           })}
@@ -622,12 +742,18 @@ function MappingTable({ run, meta, me, onDone }: { run: RunDetail; meta: Meta; m
       </table>
       {editable && (
         <div className="actions">
-          <button onClick={() => void confirm()} disabled={busy}>{busy ? 'Importing…' : 'Confirm mapping and import'}</button>
+          <button onClick={() => void confirm()} disabled={busy}>
+            {busy ? 'Importing…' : 'Confirm mapping and import'}
+          </button>
           <span className="muted">Saved for this supplier; the next file with these columns won't ask again.</span>
         </div>
       )}
       {problems.length > 0 && (
-        <ul className="problems" role="alert">{problems.map((p) => <li key={p}>{p}</li>)}</ul>
+        <ul className="problems" role="alert">
+          {problems.map((p) => (
+            <li key={p}>{p}</li>
+          ))}
+        </ul>
       )}
     </section>
   );
@@ -657,7 +783,9 @@ function Issues({ groups, runId, quarantined }: { groups: IssueGroup[]; runId: s
     <section className="issues">
       <div className="issues-head">
         <h3>What to fix</h3>
-        {quarantined > 0 && <DownloadButton runId={runId} label={`Download ${quarantined === 1 ? 'the set-aside row' : `the ${quarantined} set-aside rows`} with reasons`} />}
+        {quarantined > 0 && (
+          <DownloadButton runId={runId} label={`Download ${quarantined === 1 ? 'the set-aside row' : `the ${quarantined} set-aside rows`} with reasons`} />
+        )}
       </div>
       <ol>
         {visible.map((g) => (
@@ -666,17 +794,29 @@ function Issues({ groups, runId, quarantined }: { groups: IssueGroup[]; runId: s
             <div>
               <p className="issue-title">
                 {g.title}
-                {g.sourceField && <> in <q>{g.sourceField}</q></>}
+                {g.sourceField && (
+                  <>
+                    {' '}
+                    in <q>{g.sourceField}</q>
+                  </>
+                )}
                 <span className="issue-effect">{issueEffect(g)}</span>
               </p>
               <p className="issue-hint">{g.hint}</p>
-              {g.locations.length > 0 && <p className="issue-where">At {g.locations.map(where).join(', ')}{g.count > g.locations.length ? ' and more' : ''}. Code {g.code}.</p>}
+              {g.locations.length > 0 && (
+                <p className="issue-where">
+                  At {g.locations.map(where).join(', ')}
+                  {g.count > g.locations.length ? ' and more' : ''}. Code {g.code}.
+                </p>
+              )}
             </div>
           </li>
         ))}
       </ol>
       {infoCount > 0 && (
-        <button className="link-button" onClick={() => setShowInfo(!showInfo)}>{showInfo ? 'Hide' : 'Show'} {plural(infoCount, 'informational note')}</button>
+        <button className="link-button" onClick={() => setShowInfo(!showInfo)}>
+          {showInfo ? 'Hide' : 'Show'} {plural(infoCount, 'informational note')}
+        </button>
       )}
     </section>
   );
@@ -732,8 +872,15 @@ function SuppliersView({ partners, meta, me }: { partners: Partner[]; meta: Meta
   useEffect(() => {
     if (!partnerId) return;
     setRows(null);
-    api.mappings(partnerId).then(setRows).catch((e: Error) => setError(e.message));
-    if (can(me, 'reviewer')) api.audit(partnerId).then((a) => setEvents(a.filter((e) => e.action.startsWith('mapping.')))).catch(() => {});
+    api
+      .mappings(partnerId)
+      .then(setRows)
+      .catch((e: Error) => setError(e.message));
+    if (can(me, 'reviewer'))
+      api
+        .audit(partnerId)
+        .then((a) => setEvents(a.filter((e) => e.action.startsWith('mapping.'))))
+        .catch(() => {});
   }, [partnerId, me]);
 
   async function change(fn: () => Promise<SavedMappingRow[]>) {
@@ -754,21 +901,29 @@ function SuppliersView({ partners, meta, me }: { partners: Partner[]; meta: Meta
           Supplier
           <select value={partnerId} onChange={(e) => setPartnerId(e.target.value)}>
             {partners.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
             ))}
           </select>
         </label>
       </div>
       {partner && (
         <p className="muted">
-          {partner.description} Numbers use &ldquo;{partner.locale.decimalSeparator}&rdquo; as the decimal separator, dates are read {partner.locale.dateOrder === 'DMY' ? 'day first' : 'month first'}, default currency {partner.locale.defaultCurrency}. {partner.productCount} products in the catalog.
+          {partner.description} Numbers use &ldquo;{partner.locale.decimalSeparator}&rdquo; as the decimal separator, dates are read{' '}
+          {partner.locale.dateOrder === 'DMY' ? 'day first' : 'month first'}, default currency {partner.locale.defaultCurrency}. {partner.productCount} products
+          in the catalog.
         </p>
       )}
       <p>
         These are decisions people made when confirming a file. They apply to every future file from this supplier.
         {isAdmin ? ' Change a field, or remove the decision so the column is suggested again next time.' : ' Only admins can change them.'}
       </p>
-      {error && <p className="bad-text" role="alert">{error}</p>}
+      {error && (
+        <p className="bad-text" role="alert">
+          {error}
+        </p>
+      )}
       {rows === null ? (
         <p className="muted">Loading…</p>
       ) : rows.length === 0 ? (
@@ -780,7 +935,11 @@ function SuppliersView({ partners, meta, me }: { partners: Partner[]; meta: Meta
               <th scope="col">Supplier column</th>
               <th scope="col">Product field</th>
               <th scope="col">Decided by</th>
-              {isAdmin && <th scope="col"><span className="visually-hidden">Actions</span></th>}
+              {isAdmin && (
+                <th scope="col">
+                  <span className="visually-hidden">Actions</span>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -789,20 +948,30 @@ function SuppliersView({ partners, meta, me }: { partners: Partner[]; meta: Meta
                 <th scope="row">{r.sourceField}</th>
                 <td>
                   {isAdmin ? (
-                    <select aria-label={`Product field for ${r.sourceField}`} value={r.target ?? ''} onChange={(e) => void change(() => api.setMapping(partnerId, r.sourceField, e.target.value || null))}>
+                    <select
+                      aria-label={`Product field for ${r.sourceField}`}
+                      value={r.target ?? ''}
+                      onChange={(e) => void change(() => api.setMapping(partnerId, r.sourceField, e.target.value || null))}
+                    >
                       <option value="">Don't import</option>
                       {meta.fields.map((f) => (
-                        <option key={f.name} value={f.name}>{f.name}</option>
+                        <option key={f.name} value={f.name}>
+                          {f.name}
+                        </option>
                       ))}
                     </select>
                   ) : (
                     (r.target ?? <span className="muted">not imported</span>)
                   )}
                 </td>
-                <td>{r.decidedBy ?? 'unknown'}, {time(r.decidedAt)}</td>
+                <td>
+                  {r.decidedBy ?? 'unknown'}, {time(r.decidedAt)}
+                </td>
                 {isAdmin && (
                   <td>
-                    <button className="link-button" onClick={() => void change(() => api.deleteMapping(partnerId, r.sourceField))}>Remove</button>
+                    <button className="link-button" onClick={() => void change(() => api.deleteMapping(partnerId, r.sourceField))}>
+                      Remove
+                    </button>
                   </td>
                 )}
               </tr>

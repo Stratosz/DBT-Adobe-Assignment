@@ -106,17 +106,20 @@ export const ISSUE_CATALOG = {
   RECORD_TOO_LARGE: {
     kind: 'invalid',
     title: 'Record exceeds the size limits',
-    hint: () => 'The record has too many fields or a value that is far too long (limits: 500 fields, 10,000 characters per value). This is usually a broken export or a wrong delimiter.',
+    hint: () =>
+      'The record has too many fields or a value that is far too long (limits: 500 fields, 10,000 characters per value). This is usually a broken export or a wrong delimiter.',
   },
   STALE_RECORD: {
     kind: 'resolved',
     title: 'Record is older than the product in the catalog; skipped',
-    hint: () => 'The catalog already has newer data for these SKUs (by the supplier timestamp), so this older data was not applied. Expected when feeds arrive out of order; nothing to fix unless the supplier clock is wrong.',
+    hint: () =>
+      'The catalog already has newer data for these SKUs (by the supplier timestamp), so this older data was not applied. Expected when feeds arrive out of order; nothing to fix unless the supplier clock is wrong.',
   },
   PRICE_SWING: {
     kind: 'review',
     title: 'Price changed more than the allowed swing against the catalog',
-    hint: (c) => `These prices moved more than the allowed percentage compared with the current catalog.${s(c)} If it is a sale or a repricing, approve the run; if it looks like a unit or currency bug, reject it and ask the supplier for a corrected file.`,
+    hint: (c) =>
+      `These prices moved more than the allowed percentage compared with the current catalog.${s(c)} If it is a sale or a repricing, approve the run; if it looks like a unit or currency bug, reject it and ask the supplier for a corrected file.`,
   },
   SCHEMA_VIOLATION: {
     kind: 'invalid',
@@ -126,7 +129,8 @@ export const ISSUE_CATALOG = {
   DUPLICATE_SKU: {
     kind: 'resolved',
     title: 'SKU appears more than once in the file; last occurrence wins',
-    hint: (c) => `The same SKU appears in several records.${s(c)} The last one was kept. Check whether the export joins a table that multiplies rows (e.g. variants or warehouses).`,
+    hint: (c) =>
+      `The same SKU appears in several records.${s(c)} The last one was kept. Check whether the export joins a table that multiplies rows (e.g. variants or warehouses).`,
   },
   // ---- field level ------------------------------------------------------------------
   PRICE_UNPARSEABLE: {
@@ -142,7 +146,8 @@ export const ISSUE_CATALOG = {
   PRICE_LOCALE_AMBIGUOUS: {
     kind: 'resolved',
     title: 'Decimal separator was ambiguous; resolved using the partner locale',
-    hint: (c) => `Values like ${list(c)} could mean either thousands or decimals. They were read using the partner's configured locale. Confirm the locale on the partner profile.`,
+    hint: (c) =>
+      `Values like ${list(c)} could mean either thousands or decimals. They were read using the partner's configured locale. Confirm the locale on the partner profile.`,
   },
   CURRENCY_INVALID: {
     kind: 'invalid',
@@ -152,7 +157,8 @@ export const ISSUE_CATALOG = {
   CURRENCY_DEFAULTED: {
     kind: 'resolved',
     title: 'No currency in record; partner default used',
-    hint: () => "The record has a price but no currency. The partner's default currency was applied. Add a currency column if the partner sells in more than one.",
+    hint: () =>
+      "The record has a price but no currency. The partner's default currency was applied. Add a currency column if the partner sells in more than one.",
   },
   QUANTITY_INVALID: {
     kind: 'invalid',
@@ -167,7 +173,8 @@ export const ISSUE_CATALOG = {
   AVAILABILITY_UNKNOWN: {
     kind: 'invalid',
     title: 'Availability value not recognised',
-    hint: (c) => `${f(c)} has values we cannot map to in_stock / out_of_stock / preorder / discontinued.${s(c)} Add them to the availability vocabulary if they are legitimate.`,
+    hint: (c) =>
+      `${f(c)} has values we cannot map to in_stock / out_of_stock / preorder / discontinued.${s(c)} Add them to the availability vocabulary if they are legitimate.`,
   },
   GTIN_INVALID: {
     kind: 'invalid',
@@ -231,6 +238,6 @@ export function severityFor(code: IssueCode, fieldIsRequired: boolean): Severity
 }
 
 export function displayValue(value: unknown, max = 60): string {
-  const text = typeof value === 'string' ? value : JSON.stringify(value) ?? String(value);
+  const text = typeof value === 'string' ? value : (JSON.stringify(value) ?? String(value));
   return text.length > max ? `${text.slice(0, max - 1)}…` : text;
 }

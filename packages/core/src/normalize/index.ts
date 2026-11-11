@@ -75,7 +75,18 @@ export function normalizeSku(v: unknown): Normalized<string> {
 
 // ---------------------------------------------------------------------------------- numbers
 
-const CURRENCY_SYMBOLS: Record<string, string> = { '€': 'EUR', '£': 'GBP', '¥': 'JPY', '₹': 'INR', '₽': 'RUB', 'zł': 'PLN', lei: 'RON', kr: 'SEK', 'CHF': 'CHF', '$': 'USD' };
+const CURRENCY_SYMBOLS: Record<string, string> = {
+  '€': 'EUR',
+  '£': 'GBP',
+  '¥': 'JPY',
+  '₹': 'INR',
+  '₽': 'RUB',
+  zł: 'PLN',
+  lei: 'RON',
+  kr: 'SEK',
+  CHF: 'CHF',
+  $: 'USD',
+};
 const DOLLAR_CURRENCIES = new Set(['USD', 'CAD', 'AUD', 'NZD', 'SGD', 'HKD', 'MXN']);
 
 /**
@@ -87,7 +98,7 @@ const DOLLAR_CURRENCIES = new Set(['USD', 'CAD', 'AUD', 'NZD', 'SGD', 'HKD', 'MX
  *  - otherwise the single separator is the decimal ("12,5", "12.50")
  */
 export function parseDecimal(input: string, locale: PartnerLocale): { value: number | null; ambiguous: boolean } {
-  let s = input.replace(/[\s  ']/g, '');
+  let s = input.replace(/[\s\u00a0\u202f']/g, '');
   let negative = false;
   if (/^\(.*\)$/.test(s)) {
     negative = true;
@@ -114,7 +125,8 @@ export function parseDecimal(input: string, locale: PartnerLocale): { value: num
     if (sep) {
       const occurrences = s.split(sep).length - 1;
       const digitsAfter = s.length - s.lastIndexOf(sep) - 1;
-      if (occurrences > 1) decimalSep = sep === ',' ? '.' : ','; // repeated -> thousands; decimal is "the other one"
+      if (occurrences > 1)
+        decimalSep = sep === ',' ? '.' : ','; // repeated -> thousands; decimal is "the other one"
       else if (digitsAfter === 3) {
         ambiguous = true;
         decimalSep = locale.decimalSeparator;
@@ -123,7 +135,10 @@ export function parseDecimal(input: string, locale: PartnerLocale): { value: num
   }
 
   const thousandsSep = decimalSep === ',' ? '.' : ',';
-  const [intPart, fracPart, ...rest] = s.split(thousandsSep).join('').split(decimalSep ?? '\u0000');
+  const [intPart, fracPart, ...rest] = s
+    .split(thousandsSep)
+    .join('')
+    .split(decimalSep ?? '\u0000');
   if (rest.length > 0) return { value: null, ambiguous: false };
   const value = Number(`${intPart || '0'}${fracPart !== undefined ? `.${fracPart}` : ''}`);
   if (!Number.isFinite(value)) return { value: null, ambiguous: false };
@@ -177,7 +192,7 @@ export function normalizeQuantity(v: unknown, locale: PartnerLocale): Normalized
   else if (typeof v === 'string') {
     const t = v.trim();
     // Stock is integral, so "1.000" / "1,000" / "1 000" are thousands groupings, never decimals.
-    value = /^-?\d{1,3}([.,'\s ]\d{3})+$/.test(t) ? Number(t.replace(/[.,'\s ]/g, '')) : parseDecimal(t, locale).value;
+    value = /^-?\d{1,3}([.,'\s\u00a0]\d{3})+$/.test(t) ? Number(t.replace(/[.,'\s\u00a0]/g, '')) : parseDecimal(t, locale).value;
   }
   if (value === null || !Number.isFinite(value)) return bad('QUANTITY_INVALID', `"${String(v)}" is not a number`);
   if (!Number.isInteger(value)) {
@@ -209,7 +224,22 @@ export function normalizeCurrency(v: unknown): Normalized<string> {
 const AVAILABILITY_VOCABULARY: Record<string, Availability> = {};
 for (const [value, words] of Object.entries({
   in_stock: ['in stock', 'instock', 'in_stock', 'available', 'yes', 'y', 'true', '1', 'auf lager', 'verfugbar', 'lieferbar', 'en stock', 'disponible'],
-  out_of_stock: ['out of stock', 'outofstock', 'out_of_stock', 'oos', 'no', 'n', 'false', '0', 'sold out', 'soldout', 'unavailable', 'nicht verfugbar', 'ausverkauft', 'rupture'],
+  out_of_stock: [
+    'out of stock',
+    'outofstock',
+    'out_of_stock',
+    'oos',
+    'no',
+    'n',
+    'false',
+    '0',
+    'sold out',
+    'soldout',
+    'unavailable',
+    'nicht verfugbar',
+    'ausverkauft',
+    'rupture',
+  ],
   preorder: ['preorder', 'pre-order', 'pre order', 'backorder', 'backordered', 'coming soon', 'vorbestellung'],
   discontinued: ['discontinued', 'eol', 'end of life', 'retired', 'delisted', 'auslaufartikel'],
 } satisfies Record<Availability, string[]>)) {

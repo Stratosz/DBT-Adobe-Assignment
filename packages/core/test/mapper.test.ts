@@ -7,8 +7,7 @@ import type { PartnerLocale } from '../src/normalize/index.ts';
 const DE: PartnerLocale = { decimalSeparator: ',', dateOrder: 'DMY', defaultCurrency: 'EUR' };
 const full = IMPORT_TYPES.full_catalog;
 
-const profiles = (fields: Record<string, unknown[]>): FieldProfile[] =>
-  Object.entries(fields).map(([name, samples]) => ({ name, samples }));
+const profiles = (fields: Record<string, unknown[]>): FieldProfile[] => Object.entries(fields).map(([name, samples]) => ({ name, samples }));
 
 const byField = (p: ReturnType<typeof proposeMapping>) => Object.fromEntries(p.matches.map((m) => [m.sourceField, m]));
 
@@ -34,17 +33,17 @@ describe('proposeMapping', () => {
   });
 
   it('maps a German ERP export through known aliases', () => {
-    const p = proposeMapping(
-      profiles({ Artikelnummer: ['A1'], Bezeichnung: ['Hemd'], Preis: ['12,50'], 'Währung': ['EUR'], Bestand: ['3'] }),
-      full,
-      DE,
-    );
+    const p = proposeMapping(profiles({ Artikelnummer: ['A1'], Bezeichnung: ['Hemd'], Preis: ['12,50'], Währung: ['EUR'], Bestand: ['3'] }), full, DE);
     expect(p.needsConfirmation).toBe(false);
     expect(Object.values(p.mapping).sort()).toEqual(['currency', 'name', 'price', 'quantity', 'sku']);
   });
 
   it('maps nested JSON paths', () => {
-    const p = proposeMapping(profiles({ id_sku: ['A'], 'details.title': ['x'], 'pricing.amount': [12.5], 'pricing.currency': ['EUR'], 'stock.on_hand': [4] }), full, DE);
+    const p = proposeMapping(
+      profiles({ id_sku: ['A'], 'details.title': ['x'], 'pricing.amount': [12.5], 'pricing.currency': ['EUR'], 'stock.on_hand': [4] }),
+      full,
+      DE,
+    );
     const m = byField(p);
     expect(m['pricing.amount']).toMatchObject({ target: 'price', status: 'auto' });
     expect(m['stock.on_hand']).toMatchObject({ target: 'quantity', status: 'auto' });
@@ -124,11 +123,7 @@ describe('applyDecisions', () => {
   it('explains what is still wrong', () => {
     const r = applyDecisions(proposal, { 'Item No': 'name' }, full);
     expect(r.problems).toEqual(
-      expect.arrayContaining([
-        '"name" and "Item No" are both mapped to "name"',
-        'Required field "sku" is not mapped',
-        '"VK-Preis" still needs a decision',
-      ]),
+      expect.arrayContaining(['"name" and "Item No" are both mapped to "name"', 'Required field "sku" is not mapped', '"VK-Preis" still needs a decision']),
     );
   });
 });

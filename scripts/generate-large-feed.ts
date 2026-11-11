@@ -15,7 +15,7 @@ const path = join(dir, `large_${rows}.${format}`);
 const out = createWriteStream(path);
 
 let seed = 7;
-const rand = () => ((seed = (seed * 1664525 + 1013904223) % 2 ** 32) / 2 ** 32);
+const rand = () => (seed = (seed * 1664525 + 1013904223) % 2 ** 32) / 2 ** 32;
 
 if (format === 'csv') out.write('sku,name,price,currency,quantity,ean,updated_at\n');
 for (let i = 0; i < rows; i++) {

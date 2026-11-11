@@ -1,35 +1,128 @@
 // Thin typed client for the ingestion API. Types mirror the API responses the UI reads.
 
-export interface ImportType { id: string; label: string; description: string; requiredFields: string[]; maxErrorRate: number; minQuarantinedToHold: number; maxPriceChange: number | null }
+export interface ImportType {
+  id: string;
+  label: string;
+  description: string;
+  requiredFields: string[];
+  maxErrorRate: number;
+  minQuarantinedToHold: number;
+  maxPriceChange: number | null;
+}
 export interface Meta {
   importTypes: ImportType[];
   overrideBounds: { min: number; max: number };
   formats: { id: string; label: string; extensions: string[] }[];
   fields: { name: string; type: string; description: string }[];
 }
-export interface Partner { id: string; name: string; description: string | null; productCount: number; savedMappings: number; locale: { decimalSeparator: string; dateOrder: string; defaultCurrency: string } }
+export interface Partner {
+  id: string;
+  name: string;
+  description: string | null;
+  productCount: number;
+  savedMappings: number;
+  locale: { decimalSeparator: string; dateOrder: string; defaultCurrency: string };
+}
 export type Role = 'uploader' | 'reviewer' | 'admin';
-export interface Me { id: string; name: string; role: Role }
+export interface Me {
+  id: string;
+  name: string;
+  role: Role;
+}
 
 export type RunStatus = 'RECEIVED' | 'AWAITING_MAPPING' | 'QUEUED' | 'PROCESSING' | 'COMMITTED' | 'HELD_FOR_REVIEW' | 'REJECTED' | 'FAILED';
 export const IN_FLIGHT: RunStatus[] = ['RECEIVED', 'QUEUED', 'PROCESSING'];
 
-export interface Counts { total: number; accepted: number; acceptedWithWarnings: number; quarantined: number; duplicateSkus: number; skippedStale?: number; flaggedForReview?: number }
-export interface RunSummary { id: string; partnerId: string; importType: string; filename: string | null; format: string | null; status: RunStatus; statusReason: string | null; counts: Counts | null; errorRate: number | null; createdBy: string | null; createdAt: string; updatedAt: string }
+export interface Counts {
+  total: number;
+  accepted: number;
+  acceptedWithWarnings: number;
+  quarantined: number;
+  duplicateSkus: number;
+  skippedStale?: number;
+  flaggedForReview?: number;
+}
+export interface RunSummary {
+  id: string;
+  partnerId: string;
+  importType: string;
+  filename: string | null;
+  format: string | null;
+  status: RunStatus;
+  statusReason: string | null;
+  counts: Counts | null;
+  errorRate: number | null;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
-export interface Candidate { target: string; confidence: number; method: string; reason: string }
-export interface FieldMatch { sourceField: string; target: string | null; confidence: number; method: string; status: 'auto' | 'needs_confirmation' | 'unmapped' | 'ignored'; reason: string; alternatives: Candidate[]; samples: string[] }
-export interface IssueGroup { code: string; severity: 'error' | 'warning' | 'info'; field?: string; sourceField?: string; count: number; title: string; hint: string; samples: string[]; locations: { index: number; line?: number; pointer?: string }[] }
-export interface AuditEvent { id: number; at: string; actorId: string; actorRole: Role; action: string; runId: string | null; partnerId: string | null; details: Record<string, unknown> | null }
-export interface SavedMappingRow { sourceField: string; target: string | null; decidedAt: string; decidedInRun: string | null; decidedBy: string | null }
+export interface Candidate {
+  target: string;
+  confidence: number;
+  method: string;
+  reason: string;
+}
+export interface FieldMatch {
+  sourceField: string;
+  target: string | null;
+  confidence: number;
+  method: string;
+  status: 'auto' | 'needs_confirmation' | 'unmapped' | 'ignored';
+  reason: string;
+  alternatives: Candidate[];
+  samples: string[];
+}
+export interface IssueGroup {
+  code: string;
+  severity: 'error' | 'warning' | 'info';
+  field?: string;
+  sourceField?: string;
+  count: number;
+  title: string;
+  hint: string;
+  samples: string[];
+  locations: { index: number; line?: number; pointer?: string }[];
+}
+export interface AuditEvent {
+  id: number;
+  at: string;
+  actorId: string;
+  actorRole: Role;
+  action: string;
+  runId: string | null;
+  partnerId: string | null;
+  details: Record<string, unknown> | null;
+}
+export interface SavedMappingRow {
+  sourceField: string;
+  target: string | null;
+  decidedAt: string;
+  decidedInRun: string | null;
+  decidedBy: string | null;
+}
 
 export interface RunDetail extends RunSummary {
   sizeBytes: number;
   attempts: number;
   policy: { maxErrorRate: number; overridden: boolean; overrideReason: string | null };
-  analysis: { format: string | null; detectionMethod: string | null; encoding: string; proposal: { matches: FieldMatch[]; missingRequired: string[]; conflicts: { target: string; sourceFields: string[] }[] } | null } | null;
+  analysis: {
+    format: string | null;
+    detectionMethod: string | null;
+    encoding: string;
+    proposal: { matches: FieldMatch[]; missingRequired: string[]; conflicts: { target: string; sourceFields: string[] }[] } | null;
+  } | null;
   drift: { changed: boolean; firstRun: boolean; added?: string[]; removed?: string[] } | null;
-  result: { counts: Counts; errorRate: number; maxErrorRate: number; issueGroups: IssueGroup[]; durationMs: number; recordsPerSecond: number; decisionReason: string; holdReasons?: string[] } | null;
+  result: {
+    counts: Counts;
+    errorRate: number;
+    maxErrorRate: number;
+    issueGroups: IssueGroup[];
+    durationMs: number;
+    recordsPerSecond: number;
+    decisionReason: string;
+    holdReasons?: string[];
+  } | null;
   fatal: { code: string; message: string; hint: string } | null;
   commit: { inserted: number; updated: number; unknownSkus: number; skippedStale?: number } | null;
   mapping: Record<string, string> | null;
@@ -37,7 +130,13 @@ export interface RunDetail extends RunSummary {
 }
 
 export class ApiError extends Error {
-  constructor(readonly status: number, readonly code: string, message: string, readonly hint?: string, readonly details?: { problems?: string[]; runId?: string }) {
+  constructor(
+    readonly status: number,
+    readonly code: string,
+    message: string,
+    readonly hint?: string,
+    readonly details?: { problems?: string[]; runId?: string },
+  ) {
     super(message);
   }
 }
@@ -84,7 +183,8 @@ async function request<T>(url: string, init: RequestInit = {}): Promise<T> {
   return body as T;
 }
 
-const send = <T>(method: string, url: string, body: unknown) => request<T>(url, { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+const send = <T>(method: string, url: string, body: unknown) =>
+  request<T>(url, { method, headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
 
 export const api = {
   me: () => request<Me>('/api/me'),
@@ -99,7 +199,8 @@ export const api = {
   mappings: (partnerId: string) => request<SavedMappingRow[]>(`/api/partners/${partnerId}/mappings`),
   setMapping: (partnerId: string, sourceField: string, target: string | null) =>
     send<SavedMappingRow[]>('PUT', `/api/partners/${partnerId}/mappings/${encodeURIComponent(sourceField)}`, { target }),
-  deleteMapping: (partnerId: string, sourceField: string) => request<SavedMappingRow[]>(`/api/partners/${partnerId}/mappings/${encodeURIComponent(sourceField)}`, { method: 'DELETE' }),
+  deleteMapping: (partnerId: string, sourceField: string) =>
+    request<SavedMappingRow[]>(`/api/partners/${partnerId}/mappings/${encodeURIComponent(sourceField)}`, { method: 'DELETE' }),
   audit: (partnerId: string) => request<AuditEvent[]>(`/api/audit?partnerId=${partnerId}&limit=50`),
   /** Downloads need the auth header, so fetch as a blob instead of a plain link. */
   async downloadQuarantine(id: string) {

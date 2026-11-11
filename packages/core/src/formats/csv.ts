@@ -23,7 +23,10 @@ function countOutsideQuotes(line: string, delimiter: string): number {
  * European Excel exports use ";" because "," is the decimal separator, so we cannot assume ",".
  */
 export function sniffDelimiter(head: string): { delimiter: string; confidence: number } {
-  const sample = head.split(/\r?\n/).filter((l) => l.trim().length > 0).slice(0, 20);
+  const sample = head
+    .split(/\r?\n/)
+    .filter((l) => l.trim().length > 0)
+    .slice(0, 20);
   // Drop the last line: it may be cut off mid-record by the head boundary.
   if (sample.length > 2) sample.pop();
   let best = { delimiter: ',', confidence: 0 };

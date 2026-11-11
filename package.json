@@ -18,13 +18,24 @@
     "typecheck": "tsc -p packages/core && tsc -p apps/api && tsc -p apps/web",
     "ingest": "tsx scripts/ingest-cli.ts",
     "gen:large": "tsx scripts/generate-large-feed.ts",
-    "bench": "tsx scripts/bench.ts"
+    "bench": "tsx scripts/bench.ts",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "audit:prod": "npm audit --omit=dev --audit-level=high"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/node": "^22.10.0",
     "concurrently": "^9.1.0",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10",
     "tsx": "^4.19.0",
     "typescript": "^5.7.0",
+    "typescript-eslint": "^8.72.2",
     "vitest": "^5.1.0"
   }
 }
