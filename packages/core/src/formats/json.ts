@@ -1,15 +1,11 @@
 import { Readable, pipeline } from 'node:stream';
-import { createRequire } from 'node:module';
+import parserStream from 'stream-json';
+import { pick } from 'stream-json/filters/pick.js';
+import { streamArray } from 'stream-json/streamers/stream-array.js';
 import { displayValue } from '../errors.ts';
 import { lines } from './decode.ts';
 import { flatten } from './flatten.ts';
 import { FormatError, type AdapterEvent, type FormatAdapter, type ReadOptions } from './types.ts';
-
-// stream-json is CommonJS
-const require = createRequire(import.meta.url);
-const { parser: jsonParser } = require('stream-json') as typeof import('stream-json');
-const { pick } = require('stream-json/filters/Pick') as typeof import('stream-json/filters/Pick');
-const { streamArray } = require('stream-json/streamers/StreamArray') as typeof import('stream-json/streamers/StreamArray');
 
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -133,7 +129,7 @@ export const jsonAdapter: FormatAdapter = {
     }
 
     // stream.pipeline (not .pipe) so a parse error anywhere surfaces on the iterator below.
-    const stages = [Readable.from(replay()), jsonParser(), ...(recordPath ? [pick({ filter: recordPath, once: true })] : []), streamArray()];
+    const stages = [Readable.from(replay()), parserStream(), ...(recordPath ? [pick.asStream({ filter: recordPath, once: true })] : []), streamArray.asStream()];
     const items = (pipeline as unknown as (...s: unknown[]) => NodeJS.ReadableStream)(...stages, () => {});
 
     const pointerBase = recordPath ? `/${recordPath.replaceAll('.', '/')}` : '';

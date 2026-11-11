@@ -8,9 +8,13 @@
     "start": "tsx src/server.ts"
   },
   "dependencies": {
-    "@feed/core": "*",
+    "@fastify/helmet": "^13.2.0",
     "@fastify/multipart": "^9.0.0",
-    "@fastify/static": "^8.0.0",
+    "@fastify/rate-limit": "^10.3.0",
+    "@fastify/static": "^10.1.10",
+    "@fastify/swagger": "^9.9.3",
+    "@fastify/swagger-ui": "^6.1.3",
+    "@feed/core": "*",
     "fastify": "^5.2.0",
     "prom-client": "^15.1.0"
   },
