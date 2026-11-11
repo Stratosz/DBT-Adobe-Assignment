@@ -3,8 +3,10 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import fastifyStatic from '@fastify/static';
 import { z } from 'zod';
-import { REPO_ROOT, buildApp } from './app.ts';
-import { KeyStore } from './auth.ts';
+// Loaded after quiet-warnings is installed: built-in modules (node:sqlite) are instantiated
+// before any module body runs, so a static import would print the warning first.
+const { REPO_ROOT, buildApp } = await import('./app.ts');
+const { KeyStore } = await import('./auth.ts');
 
 /** Configuration is validated once at startup; a bad value fails fast with a clear message. */
 const DEMO_KEYS = join(REPO_ROOT, 'config', 'api-keys.demo.json');
