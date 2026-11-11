@@ -338,17 +338,25 @@ Deliberately not covered:
 
 ## Performance and scaling
 
-Measured in the dev container (`npm run gen:large`, then `npm run bench`):
+Measured in Claude's Linux dev environment. Reproduce with:
 
-| Workload                                      | Result                                                                                     |
-| --------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Core pipeline, 1M-row CSV (71 MB, 2% defects) | ~76k records/s, peak RSS 324 MB                                                            |
-| Core pipeline, 200k-row NDJSON (29 MB)        | ~84k records/s, peak RSS 188 MB                                                            |
-| API end to end, 100k-row CSV                  | upload answered in 0.06 s; committed after 4.5 s (analyze, stage, catalog guards, promote) |
+```bash
+npm run gen:large -- 1000000 csv          # or: <rows> ndjson | json
+npm run bench -- fixtures/generated/large_1000000.csv
+# inside the Docker dev container:
+docker compose -f compose.dev.yaml exec feed-intake-dev npm run bench -- fixtures/generated/large_1000000.csv
+```
+
+| Workload                                                   | Result                                                                                                               |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Core pipeline, 1M-row CSV (71 MB, 2% defects)              | ~75k records/s, peak RSS about 275–325 MB                                                                            |
+| Core pipeline, 100k-row NDJSON                             | ~80k records/s                                                                                                       |
+| Core pipeline, 100k-row JSON document (`{"products":[…]}`) | ~22k records/s. The token-level streaming JSON parser costs about 3× CSV/NDJSON; still well within a nightly window. |
+| API end to end, 100k-row CSV                               | upload answered in 0.06 s; committed after 4.5 s (analyze, stage, catalog guards, promote)                           |
 
 **Where the time and memory go:**
 
-- **Parsing and normalization** are CPU-bound on one core.
+- **Parsing and normalization** are CPU-bound on one core. For large JSON documents the parser dominates; asking suppliers for NDJSON (or a faster SIMD JSON parser) is the lever.
 - **Memory** is the SKU set used for duplicate detection; issue aggregation is bounded.
 - **In the API,** the cost is per-row SQLite statements (stage, catalog lookup, promote), serialized by the single writer.
 

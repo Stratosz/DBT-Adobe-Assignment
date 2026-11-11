@@ -41,6 +41,7 @@ export interface Detection {
 }
 
 const EXTENSION_MIN_SCORE = 0.3;
+const EXTENSION_OVERRIDE_MARGIN = 0.5;
 const AMBIGUITY_MARGIN = 0.1;
 const CONFIDENT_SCORE = 0.8;
 
@@ -55,7 +56,13 @@ export function detectFormat(head: string, filename?: string | null, explicit?: 
   const ext = filename?.toLowerCase().match(/\.([a-z0-9]+)$/)?.[1];
   if (ext) {
     const byExt = listAdapters().find((a) => a.extensions.includes(ext));
-    if (byExt && (scores[byExt.id] ?? 0) >= EXTENSION_MIN_SCORE) return { adapter: byExt, method: 'extension', scores };
+    const extScore = scores[byExt?.id ?? ''] ?? 0;
+    const bestScore = Math.max(...Object.values(scores));
+    // Trust the extension unless the content clearly says otherwise (NDJSON saved as ".json"
+    // is common): another format must beat it by a wide margin to override it.
+    if (byExt && extScore >= EXTENSION_MIN_SCORE && bestScore - extScore < EXTENSION_OVERRIDE_MARGIN) {
+      return { adapter: byExt, method: 'extension', scores };
+    }
   }
 
   const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);

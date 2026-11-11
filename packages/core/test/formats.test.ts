@@ -77,6 +77,13 @@ describe('detectFormat', () => {
   it('uses the extension when the content agrees', () => {
     expect(detectFormat('{"sku":1}\n{"sku":2}\n', 'feed.jsonl').adapter.id).toBe('ndjson');
   });
+  it('reads NDJSON saved with a .json extension as NDJSON', () => {
+    const d = detectFormat('{"sku":1}\n{"sku":2}\n{"sku":3}\n', 'export.json');
+    expect([d.adapter.id, d.method]).toEqual(['ndjson', 'content']);
+  });
+  it('keeps the extension when the content is only mildly ambiguous', () => {
+    expect(detectFormat('{\n  "products": [\n {"sku":1}]}', 'feed.json').method).toBe('extension');
+  });
   it('ignores a lying extension and sniffs the content', () => {
     const d = detectFormat('[{"sku":1}]', 'export.csv');
     expect([d.adapter.id, d.method]).toEqual(['json', 'content']);
