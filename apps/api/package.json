@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@fastify/helmet": "^13.2.0",
-    "@fastify/multipart": "^9.0.0",
+    "@fastify/multipart": "^10.1.8",
     "@fastify/rate-limit": "^10.3.0",
     "@fastify/static": "^10.1.10",
     "@fastify/swagger": "^9.9.3",
