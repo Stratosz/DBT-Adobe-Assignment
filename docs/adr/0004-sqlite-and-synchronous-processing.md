@@ -1,6 +1,6 @@
 # ADR 4: SQLite and synchronous processing for the demo
 
-**Status:** accepted for the take-home; to be replaced for production
+**Status:** accepted for the take-home. The "synchronous processing" part is superseded by [ADR 6](0006-async-processing.md) (feedback round 1); SQLite remains.
 
 ## Context
 
